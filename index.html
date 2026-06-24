@@ -539,8 +539,8 @@ function parseWorkbook(wb){
   // 部門
   const d3row=raw[2], d4row=raw[3];
   const depts={
-    d3:{cumul_pct:d3row[2],daily_pct:d3row[6]},
-    d4:{cumul_pct:d4row[2],daily_pct:d4row[6]}
+    d3:{cumul_pct:d3row[3]>1?d3row[3]/100:d3row[3],daily_pct:d3row[6]>1?d3row[6]/100:d3row[6]},
+    d4:{cumul_pct:d4row[3]>1?d4row[3]/100:d4row[3],daily_pct:d4row[6]>1?d4row[6]/100:d4row[6]}
   };
 
   // 組別
