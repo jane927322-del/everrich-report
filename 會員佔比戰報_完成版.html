@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>會員佔比競賽戰報｜昇恒昌</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- ═══════════════════════════════════════════════
+     ☁️ Google Apps Script 設定區（只需填這一行）
+     把下方的網址換成你的 Apps Script 部署網址
+════════════════════════════════════════════════ -->
+<script>
+  // ★ 唯一需要填的東西：把引號內換成你的 Apps Script 網址
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbytCPAY7jMck5pMaXp2YWfZsoFM6OhwSBUJSDuTtyNb4vGJXafDMHTVCb2Kn3SQdXuN/exec";
+
+  // ── 上傳資料到 Google 試算表 ──
+  window.saveToFirebase = async function(payload) {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (!result.ok) throw new Error(result.error || '儲存失敗');
+  };
+
+  // ── 頁面載入時自動從 Google 試算表抓資料 ──
+  async function loadFromCloud() {
+    try {
+      const res = await fetch(GAS_URL + '?action=read');
+      const data = await res.json();
+      if (data && data.dateLabel) {
+        renderAll(data);
+        document.getElementById('updated-badge').style.display = 'inline-block';
+        document.getElementById('period-badge').textContent = data.dateLabel || '—';
+        document.getElementById('report-date-label').textContent = data.dateLabel ? '資料期間：' + data.dateLabel : '';
+        document.getElementById('footer-txt').textContent = '昇恒昌免稅城｜桃園機場 T2 C 出境｜' + (data.dateLabel || '');
+        document.getElementById('last-update').textContent = data.uploadedAt ? '上次更新：' + data.uploadedAt : '';
+      } else {
+        document.getElementById('loading-overlay').classList.remove('show');
+        document.getElementById('period-badge').textContent = '尚無資料';
+      }
+    } catch(e) {
+      document.getElementById('loading-overlay').classList.remove('show');
+      document.getElementById('period-badge').textContent = '載入失敗';
+      console.error('載入雲端資料失敗：', e);
+    }
+  }
+
+  // 頁面準備好後執行
+  document.addEventListener('DOMContentLoaded', loadFromCloud);
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+  :root {
+    --gold:#E8A820; --gold-light:#FFD060; --gold-dim:#9A6A10;
+    --navy:#0F2035; --navy-mid:#162A45; --navy-card:#1E3550;
+    --navy-border:#2E5070; --white:#F5F0E8; --muted:#9ABCDA;
+    --green:#2EDB8A; --red:#FF5A5A; --blue:#60B0FF;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(160deg,#0F2035 0%,#142840 50%,#0F1E30 100%);color:var(--white);min-height:100vh;}
+
+  header{background:linear-gradient(135deg,#0A1828,#1A3050,#0F2035);border-bottom:2px solid rgba(232,168,32,0.4);padding:18px 20px 14px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+  .header-inner{max-width:940px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#0A1828;flex-shrink:0;box-shadow:0 0 16px rgba(232,168,32,0.4);}
+  .brand-text{font-size:12px;color:var(--muted);line-height:1.4;}
+  .brand-text strong{display:block;color:var(--white);font-size:16px;font-weight:700;}
+  .period-badge{background:rgba(232,168,32,0.2);color:var(--gold-light);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid rgba(232,168,32,0.5);}
+  .admin-btn{background:rgba(255,255,255,0.07);border:1px solid var(--navy-border);color:var(--muted);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:5px;}
+  .admin-btn:hover{border-color:var(--gold-dim);color:var(--gold-light);}
+  .admin-btn.unlocked{background:rgba(46,219,138,0.12);border-color:rgba(46,219,138,0.4);color:var(--green);}
+
+  /* LOADING */
+  .loading-bar{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold));background-size:200%;animation:shimmer 1.5s infinite;display:none;}
+  .loading-bar.show{display:block;}
+  @keyframes shimmer{0%{background-position:200%}100%{background-position:-200%}}
+  .loading-overlay{position:fixed;inset:0;background:rgba(15,32,53,0.85);z-index:998;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(4px);}
+  .loading-overlay.show{display:flex;}
+  .loading-spinner{width:40px;height:40px;border:3px solid var(--navy-border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{color:var(--muted);font-size:13px;}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+  .modal-overlay.show{display:flex;}
+  .modal-box{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:18px;padding:28px 24px;width:min(340px,90vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);}
+  .modal-icon{font-size:36px;margin-bottom:10px;}
+  .modal-title{font-size:15px;font-weight:700;margin-bottom:6px;color:var(--white);}
+  .modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6;}
+  .modal-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--navy-border);border-radius:10px;padding:11px 14px;color:var(--white);font-family:inherit;font-size:14px;outline:none;text-align:center;letter-spacing:2px;margin-bottom:14px;transition:border-color .2s;}
+  .modal-input:focus{border-color:var(--gold-dim);}
+  .modal-err{font-size:11px;color:var(--red);margin-top:-8px;margin-bottom:12px;min-height:16px;}
+  .modal-btns{display:flex;gap:10px;}
+  .modal-btn{flex:1;padding:10px;border-radius:10px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+  .modal-btn.cancel{background:rgba(255,255,255,0.07);color:var(--muted);}
+  .modal-btn.confirm{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#0A1828;}
+  .modal-btn.confirm:hover{filter:brightness(1.1);}
+
+  /* UPLOAD */
+  .upload-zone{max-width:940px;margin:22px auto 0;padding:0 16px;}
+  .upload-locked-msg{background:rgba(255,90,90,0.08);border:1px dashed rgba(255,90,90,0.3);border-radius:14px;padding:18px 20px;text-align:center;color:rgba(255,150,150,0.8);font-size:13px;}
+  .upload-locked-msg span{font-size:26px;display:block;margin-bottom:6px;}
+  .upload-box{border:2px dashed var(--navy-border);border-radius:14px;padding:26px 20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(30,53,80,0.6);position:relative;backdrop-filter:blur(4px);}
+  .upload-box:hover,.upload-box.drag{border-color:var(--gold);background:rgba(232,168,32,0.08);}
+  .upload-box input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .upload-icon{font-size:32px;margin-bottom:8px;}
+  .upload-title{font-size:14px;font-weight:700;color:var(--white);margin-bottom:4px;}
+  .upload-sub{font-size:11px;color:var(--muted);}
+  .upload-hint{font-size:10px;color:var(--gold-dim);margin-top:6px;}
+  .file-loaded{background:rgba(46,219,138,0.08)!important;border-color:rgba(46,219,138,0.4)!important;}
+  .updated-badge{font-size:11px;color:var(--green);background:rgba(46,219,138,0.12);border:1px solid rgba(46,219,138,0.3);border-radius:20px;padding:3px 10px;display:none;}
+
+  /* RULES TABLE */
+  .rules-section{max-width:940px;margin:22px auto 0;padding:0 16px;}
+  .rules-card{background:rgba(30,53,80,0.7);border:1px solid var(--navy-border);border-radius:16px;overflow:hidden;backdrop-filter:blur(4px);}
+  .rules-header{background:linear-gradient(135deg,rgba(232,168,32,0.18),rgba(232,168,32,0.06));padding:12px 16px;border-bottom:1px solid var(--navy-border);display:flex;align-items:center;gap:8px;}
+  .rules-title{font-size:12px;font-weight:700;color:var(--gold-light);letter-spacing:1px;}
+  .rules-table{width:100%;border-collapse:collapse;font-size:11.5px;}
+  .rules-table th{background:rgba(0,0,0,0.2);color:var(--muted);font-weight:600;padding:9px 14px;text-align:center;font-size:10.5px;letter-spacing:.5px;}
+  .rules-table td{padding:9px 14px;border-top:1px solid rgba(255,255,255,0.04);color:var(--white);vertical-align:middle;}
+  .rules-table tr:hover td{background:rgba(255,255,255,0.02);}
+  .rules-table td:first-child{text-align:center;font-weight:700;color:var(--gold-light);white-space:nowrap;}
+  .rules-table td:nth-child(2){text-align:center;color:var(--green);font-weight:600;}
+  .rules-table td:last-child{color:rgba(240,230,200,0.85);font-size:11px;line-height:1.7;}
+  .sub-row td:first-child{color:var(--muted);font-size:10px;font-weight:400;}
+
+  /* DEPT CARDS */
+  .hero{max-width:940px;margin:22px auto 0;padding:0 16px;}
+  .dept-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;}
+  .dept-card{background:rgba(30,53,80,0.7);border:1px solid var(--navy-border);border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;backdrop-filter:blur(4px);}
+  .dept-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light));}
+  .dept-card.dept4::before{background:linear-gradient(90deg,#4090D0,#80C0FF);}
+  .dept-label{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px;letter-spacing:.5px;}
+  .dept-name{font-size:14px;font-weight:700;margin-bottom:12px;}
+  .dept-pct{font-size:36px;font-weight:900;letter-spacing:-1px;line-height:1;}
+  .dept-pct.gold{color:var(--gold-light);text-shadow:0 0 20px rgba(232,168,32,0.35);}
+  .dept-pct.blue{color:#80C0FF;text-shadow:0 0 20px rgba(96,176,255,0.35);}
+  .dept-sub{font-size:11px;color:var(--muted);margin-top:5px;}
+  .dept-bar-bg{background:rgba(255,255,255,0.08);border-radius:4px;height:7px;overflow:hidden;margin-top:12px;}
+  .dept-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+  .dept4 .dept-bar-fill{background:linear-gradient(90deg,#4090D0,#80C0FF);}
+  .dept-target{font-size:10px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:5px;}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .dot-g{background:var(--green);box-shadow:0 0 6px rgba(46,219,138,0.5);}
+  .dot-r{background:var(--red);}
+
+  /* SECTION */
+  .section{max-width:940px;margin:24px auto 0;padding:0 16px;}
+  .section-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .section-label{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--gold-light);}
+  .section-line{flex:1;height:1px;background:var(--navy-border);}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;background:rgba(30,53,80,0.6);border-radius:10px;padding:4px;margin-bottom:14px;border:1px solid var(--navy-border);}
+  .tab{flex:1;padding:9px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
+  .tab.active{background:rgba(232,168,32,0.15);color:var(--gold-light);border:1px solid rgba(232,168,32,0.25);}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+
+  /* TABLE */
+  .group-table{background:rgba(30,53,80,0.6);border:1px solid var(--navy-border);border-radius:14px;overflow:hidden;backdrop-filter:blur(4px);}
+  .group-row{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.05);gap:10px;transition:background .15s;}
+  .group-row:last-child{border-bottom:none;}
+  .group-row:hover{background:rgba(255,255,255,0.04);}
+  .group-row.hdr{background:rgba(0,0,0,0.2);padding:9px 16px;}
+  .gr-rank{width:28px;flex-shrink:0;font-size:13px;color:var(--muted);text-align:center;}
+  .gr-name{flex:1;font-size:12px;font-weight:600;min-width:0;}
+  .gr-name .dept-tag{font-size:9px;font-weight:700;margin-right:4px;}
+  .gr-name .badge{display:inline-block;border-radius:4px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:4px;}
+  .badge-ok{background:rgba(46,219,138,0.15);color:var(--green);border:1px solid rgba(46,219,138,0.3);}
+  .badge-no{background:rgba(255,90,90,0.12);color:var(--red);border:1px solid rgba(255,90,90,0.25);}
+  .gr-actual{width:54px;text-align:right;font-size:11px;color:var(--muted);flex-shrink:0;}
+  .gr-rich{width:54px;text-align:right;font-size:11px;color:var(--white);flex-shrink:0;}
+  .gr-pct{width:60px;text-align:right;font-size:14px;font-weight:700;flex-shrink:0;}
+  .c-green{color:var(--green);}
+  .c-red{color:var(--red);}
+  .hdr-txt{font-size:10px;color:var(--muted);font-weight:500;}
+
+  /* PERSONAL RANK */
+  .rank-list{display:flex;flex-direction:column;gap:10px;}
+  .rank-item{background:rgba(30,53,80,0.6);border:1px solid var(--navy-border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(4px);}
+  .rank-item.r1{border-color:rgba(255,215,0,.45);background:rgba(255,215,0,0.05);}
+  .rank-item.r2{border-color:rgba(192,192,192,.35);}
+  .rank-item.r3{border-color:rgba(205,127,50,.35);}
+  .rn{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0;background:var(--navy-border);color:var(--muted);}
+  .rn.g1{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a1200;box-shadow:0 0 12px rgba(255,215,0,0.35);}
+  .rn.g2{background:linear-gradient(135deg,#C0C0C0,#E8E8E8);color:#1a1a1a;}
+  .rn.g3{background:linear-gradient(135deg,#CD7F32,#E8A060);color:#fff;}
+  .ri{flex:1;min-width:0;}
+  .ri-name{font-size:13px;font-weight:700;}
+  .ri-group{font-size:10px;color:var(--muted);margin-top:2px;}
+  .ri-bar{margin-top:8px;background:rgba(255,255,255,0.08);border-radius:3px;height:5px;overflow:visible;position:relative;}
+  .ri-fill{height:100%;border-radius:3px;background:var(--green);transition:width 1s .1s cubic-bezier(.4,0,.2,1);}
+  .rank-item.r1 .ri-fill{background:linear-gradient(90deg,var(--gold),var(--gold-light));}
+  .ri-target{position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,0.35);border-radius:1px;left:50%;}
+  .rr{text-align:right;flex-shrink:0;}
+  .rr-pct{font-size:22px;font-weight:900;color:var(--green);}
+  .rank-item.r1 .rr-pct{color:var(--gold-light);text-shadow:0 0 12px rgba(232,168,32,0.4);}
+  .rr-detail{font-size:10px;color:var(--muted);margin-top:1px;}
+
+  /* SEARCH */
+  .search-wrap{position:relative;margin-bottom:12px;}
+  .search-input{width:100%;background:rgba(30,53,80,0.6);border:1px solid var(--navy-border);border-radius:10px;padding:10px 14px 10px 38px;color:var(--white);font-family:inherit;font-size:13px;outline:none;transition:border-color .2s;}
+  .search-input::placeholder{color:var(--muted);}
+  .search-input:focus{border-color:var(--gold-dim);}
+  .s-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted);}
+
+  .empty{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
+  .empty-icon{font-size:34px;margin-bottom:10px;}
+
+  .notice{max-width:940px;margin:22px auto 0;padding:0 16px;}
+  .notice-box{background:rgba(232,168,32,0.07);border:1px solid rgba(232,168,32,0.22);border-radius:14px;padding:14px 16px;font-size:11px;color:rgba(240,220,160,.85);line-height:1.9;}
+  .notice-box strong{color:var(--gold-light);}
+
+  footer{max-width:940px;margin:30px auto 0;padding:0 16px 36px;text-align:center;font-size:10px;color:rgba(255,255,255,0.2);}
+
+  @media(max-width:480px){
+    .dept-pct{font-size:28px;}
+    .gr-actual,.gr-rich{display:none;}
+    .rules-table td:last-child{font-size:10px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">正在從雲端載入最新資料…</div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-overlay" id="pwd-modal">
+  <div class="modal-box">
+    <div class="modal-icon">🔐</div>
+    <div class="modal-title">管理員驗證</div>
+    <div class="modal-sub">請輸入管理員密碼<br>以解鎖資料上傳功能</div>
+    <input class="modal-input" type="password" id="pwd-input" placeholder="••••••••" oninput="clearErr()" onkeydown="if(event.key==='Enter')confirmPwd()">
+    <div class="modal-err" id="modal-err"></div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeModal()">取消</button>
+      <button class="modal-btn confirm" onclick="confirmPwd()">確認解鎖</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-bar" id="loading-bar"></div>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">昇</div>
+      <div class="brand-text">
+        <strong>會員佔比競賽戰報</strong>
+        台籍 iRich 銷售占比即時排名
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+      <span class="updated-badge" id="updated-badge">✓ 雲端資料</span>
+      <button class="admin-btn" id="admin-btn" onclick="toggleAdmin()">
+        <span id="admin-lock-icon">🔒</span>
+        <span id="admin-lock-text">管理員</span>
+      </button>
+      <div class="period-badge" id="period-badge">載入中…</div>
+    </div>
+  </div>
+</header>
+
+<!-- UPLOAD（僅管理員解鎖後顯示） -->
+<div class="upload-zone">
+  <div class="upload-locked-msg" id="upload-locked">
+    <span>☁️</span>
+    資料從雲端自動載入｜如需更新請點右上角「管理員」解鎖後上傳
+  </div>
+  <div class="upload-box" id="upload-box" style="display:none;"
+       ondragover="event.preventDefault();this.classList.add('drag')"
+       ondragleave="this.classList.remove('drag')"
+       ondrop="handleDrop(event)">
+    <input type="file" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+    <div class="upload-icon" id="upload-icon">📂</div>
+    <div class="upload-title" id="upload-title">上傳最新 Excel 戰報</div>
+    <div class="upload-sub" id="upload-sub">點擊或拖曳「每日會員佔比戰報」.xlsx 至此</div>
+    <div class="upload-hint">上傳後資料自動存到雲端，所有人立即看到最新排名 ☁️</div>
+  </div>
+</div>
+
+<!-- DEPT CARDS -->
+<div class="hero">
+  <div class="dept-cards">
+    <div class="dept-card">
+      <div class="dept-label">部門累計占比</div>
+      <div class="dept-name">營業三部</div>
+      <div class="dept-pct gold" id="d3-pct">—</div>
+      <div class="dept-sub" id="d3-sub">載入中…</div>
+      <div class="dept-bar-bg"><div class="dept-bar-fill" id="d3-bar" style="width:0%"></div></div>
+      <div class="dept-target"><span class="dot" id="d3-dot"></span><span id="d3-txt">目標 ≧ 50%</span></div>
+    </div>
+    <div class="dept-card dept4">
+      <div class="dept-label">部門累計占比</div>
+      <div class="dept-name">營業四部</div>
+      <div class="dept-pct blue" id="d4-pct">—</div>
+      <div class="dept-sub" id="d4-sub">載入中…</div>
+      <div class="dept-bar-bg"><div class="dept-bar-fill" id="d4-bar" style="width:0%"></div></div>
+      <div class="dept-target"><span class="dot" id="d4-dot"></span><span id="d4-txt">目標 ≧ 50%</span></div>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;margin-top:4px;">
+    <div style="font-size:10px;color:rgba(255,255,255,0.25);" id="last-update"></div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.25);" id="report-date-label"></div>
+  </div>
+</div>
+
+<!-- COMPETITION RULES -->
+<div class="rules-section">
+  <div class="rules-card">
+    <div class="rules-header">
+      <span style="font-size:16px;">🏅</span>
+      <span class="rules-title">競賽規則一覽</span>
+    </div>
+    <table class="rules-table">
+      <thead>
+        <tr>
+          <th style="width:80px;">競賽層次</th>
+          <th style="width:160px;">低標條件</th>
+          <th>備註說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🗺️ 區域</td>
+          <td>台籍會員佔比 ≥ 50%</td>
+          <td>取理級區域佔比最高者（分三／四部，一／二期）</td>
+        </tr>
+        <tr>
+          <td>👥 組別</td>
+          <td>台籍會員佔比 ≥ 50%</td>
+          <td>取組別會員佔筆最高前三組（<strong style="color:var(--gold-light)">不分三四部</strong>）</td>
+        </tr>
+        <tr>
+          <td>👤 個人</td>
+          <td>台籍會員佔比 ≥ 50%</td>
+          <td>取前三名（三部 3 名；四部 3 名，共 <strong style="color:var(--gold-light)">6 名</strong>）</td>
+        </tr>
+        <tr>
+          <td>👑 註冊王</td>
+          <td>≥ 20 筆</td>
+          <td>組員取前三名（<strong style="color:var(--gold-light)">不分三四部</strong>）</td>
+        </tr>
+        <tr>
+          <td rowspan="2">⭐ VOC<br>好評王</td>
+          <td>組員 ≥ 5 筆</td>
+          <td>組員取前五名（不分三四部）</td>
+        </tr>
+        <tr class="sub-row">
+          <td>組（每組人數 × 1人 2 筆）</td>
+          <td>組別取前三名（<strong style="color:var(--gold-light)">不分三四部</strong>）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 區域競賽 -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-label">🗺️ 區域競賽排名（理級）</span>
+    <div class="section-line"></div>
+  </div>
+  <div style="font-size:11px;color:var(--muted);background:rgba(255,255,255,0.03);border:1px solid var(--navy-border);border-radius:10px;padding:9px 14px;margin-bottom:12px;">
+    依各理級團隊合計佔比排名，台籍會員佔比需 ≥ 50%
+  </div>
+  <div class="group-table" id="tbl-region">
+    <div class="empty"><div class="empty-icon">🗺️</div>載入中…</div>
+  </div>
+</div>
+
+<!-- GROUP RANKING -->
+<div class="section" style="margin-top:24px;">
+  <div class="section-head">
+    <span class="section-label">🏆 組別排名</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this,'tab-cumul')">累計（合計）</button>
+    <button class="tab" onclick="switchTab(this,'tab-daily')">當日</button>
+  </div>
+  <div class="tab-content active" id="tab-cumul">
+    <div class="group-table" id="tbl-cumul"><div class="empty"><div class="empty-icon">📊</div>載入中…</div></div>
+  </div>
+  <div class="tab-content" id="tab-daily">
+    <div class="group-table" id="tbl-daily"><div class="empty"><div class="empty-icon">📊</div>載入中…</div></div>
+  </div>
+</div>
+
+<!-- PERSONAL TOP RANKING -->
+<div class="section" style="margin-top:26px">
+  <div class="section-head">
+    <span class="section-label">👤 個人排名（前10名）</span>
+    <div class="section-line"></div>
+  </div>
+  <div style="font-size:11px;color:var(--muted);background:rgba(255,255,255,0.03);border:1px solid var(--navy-border);border-radius:10px;padding:9px 14px;margin-bottom:12px;">
+    台籍會員佔比須達 50% 方可計入排名，達標者依 <strong style="color:var(--gold-light)">佔比高低</strong> 排序，佔比相同時以 iRich 交易筆數多寡決定
+  </div>
+  <div class="rank-list" id="personal-rank">
+    <div class="empty"><div class="empty-icon">🏅</div>載入中…</div>
+  </div>
+</div>
+
+<!-- FULL TABLE -->
+<div class="section" style="margin-top:26px">
+  <div class="section-head">
+    <span class="section-label">📋 全體人員明細</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="search-wrap">
+    <span class="s-icon">🔍</span>
+    <input class="search-input" type="text" placeholder="搜尋姓名或組別…" oninput="filterFull(this.value)">
+  </div>
+  <div class="group-table" id="tbl-full">
+    <div class="empty"><div class="empty-icon">👥</div>載入中…</div>
+  </div>
+</div>
+
+<div class="notice">
+  <div class="notice-box">
+    <strong>規則說明：</strong>競賽期間 6/15–7/14，台籍 iRich 占比需 ≧ 50% 方計入排名。<br>
+    <strong>獎項：</strong>區域冠軍 ｜ 組別前三（不分部）｜ 個人各部前三共6名 ｜ 註冊王前三 ｜ VOC好評王組員前五／組別前三。<br>
+    <strong>更新方式：</strong>管理員解鎖後上傳最新 Excel，資料自動同步至雲端，所有人立即看到最新排名。
+  </div>
+</div>
+
+<footer id="footer-txt">昇恒昌免稅城｜桃園機場 T2 C 出境</footer>
+
+<script>
+const TARGET = 0.5;
+const ADMIN_HASH = btoa('EverRich2025');
+let isAdminUnlocked = false;
+let fullIndividuals = [];
+
+// ── 顯示載入畫面 ──
+document.getElementById('loading-overlay').classList.add('show');
+setTimeout(()=>{ document.getElementById('loading-overlay').classList.remove('show'); }, 3000);
+
+// ── ADMIN ──
+function toggleAdmin(){ isAdminUnlocked ? lockAdmin() : openModal(); }
+function openModal(){
+  document.getElementById('pwd-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('pwd-input').focus(),100);
+}
+function closeModal(){
+  document.getElementById('pwd-modal').classList.remove('show');
+  document.getElementById('pwd-input').value='';
+  document.getElementById('modal-err').textContent='';
+}
+function clearErr(){ document.getElementById('modal-err').textContent=''; }
+function confirmPwd(){
+  const val=document.getElementById('pwd-input').value;
+  if(btoa(val)===ADMIN_HASH){
+    isAdminUnlocked=true;
+    closeModal();
+    document.getElementById('upload-locked').style.display='none';
+    document.getElementById('upload-box').style.display='block';
+    const btn=document.getElementById('admin-btn');
+    btn.classList.add('unlocked');
+    document.getElementById('admin-lock-icon').textContent='🔓';
+    document.getElementById('admin-lock-text').textContent='已解鎖';
+  } else {
+    document.getElementById('modal-err').textContent='❌ 密碼錯誤，請重試';
+    document.getElementById('pwd-input').value='';
+    document.getElementById('pwd-input').focus();
+  }
+}
+function lockAdmin(){
+  isAdminUnlocked=false;
+  document.getElementById('upload-box').style.display='none';
+  document.getElementById('upload-locked').style.display='block';
+  const btn=document.getElementById('admin-btn');
+  btn.classList.remove('unlocked');
+  document.getElementById('admin-lock-icon').textContent='🔒';
+  document.getElementById('admin-lock-text').textContent='管理員';
+}
+document.getElementById('pwd-modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+
+// ── UTILS ──
+function pct(v){ return v==null?'—':(v*100).toFixed(1)+'%'; }
+function num(v){ return v==null?'—':Number(v).toLocaleString(); }
+function nowStr(){
+  const d=new Date();
+  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+// ── FILE HANDLING ──
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('upload-box').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f) handleFile(f);
+}
+
+function handleFile(file){
+  if(!file) return;
+  document.getElementById('loading-bar').classList.add('show');
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      const payload=parseWorkbook(wb);
+      // 存到 Firebase
+      await window.saveToFirebase(payload);
+      // 更新上傳區外觀
+      const box=document.getElementById('upload-box');
+      box.classList.add('file-loaded');
+      document.getElementById('upload-icon').textContent='✅';
+      document.getElementById('upload-title').textContent='☁️ 已上傳至雲端：'+file.name;
+      document.getElementById('upload-sub').textContent='所有人的頁面已自動更新，點擊可重新上傳';
+      document.getElementById('loading-bar').classList.remove('show');
+    }catch(err){
+      document.getElementById('loading-bar').classList.remove('show');
+      alert('上傳失敗：'+err.message+'\n請確認 GAS_URL 是否填入正確，或檔案格式是否正確');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── PARSE WORKBOOK → 回傳 payload 物件 ──
+function parseWorkbook(wb){
+  const ws=wb.Sheets['總表在這邊'];
+  if(!ws) throw new Error('找不到「總表在這邊」工作表');
+  const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+
+  // 日期標籤
+  let dateLabel='';
+  if(raw[12]&&raw[12][1]) dateLabel=String(raw[12][1]);
+
+  // 部門
+  const d3row=raw[2], d4row=raw[3];
+  const depts={
+    d3:{cumul_pct:d3row[3],daily_pct:d3row[6]},
+    d4:{cumul_pct:d4row[3],daily_pct:d4row[6]}
+  };
+
+  // 組別
+  const groups=[];
+  for(let i=0;i<raw.length;i++){
+    const r=raw[i];
+    if(!r||!r[0]) continue;
+    const cell=String(r[0]);
+    if(/^ER\d{3}-/.test(cell)){
+      const isDept4=cell.includes('營業四部');
+      const dashIdx=cell.indexOf('-');
+      let fullName=dashIdx>=0?cell.slice(dashIdx+1):cell;
+      fullName=fullName.replace('營業三部','').replace('營業四部','').trim();
+      groups.push({id:cell.split('-')[0],name:fullName,dept:isDept4?4:3,
+        cumul_actual:r[1],cumul_rich:r[2],cumul_pct:r[3],
+        daily_actual:r[4],daily_rich:r[5],daily_pct:r[6]});
+    }
+  }
+
+  // 個人
+  const wsP=wb.Sheets['個人佔比'];
+  const individuals=[];
+  if(wsP){
+    const rows=XLSX.utils.sheet_to_json(wsP,{header:1,defval:null});
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];
+      if(!r||!r[0]||!r[2]) continue;
+      const groupCell=String(r[0]);
+      const emp=r[1]!=null?String(r[1]):'';
+      const name=String(r[2]);
+      const actual=r[3]||0;
+      const rich=r[4]||0;
+      const pctVal=r[6]!=null?r[6]:(actual>0?rich/actual:0);
+      const dept=groupCell.includes('四部')?4:3;
+      const dashIdx=groupCell.indexOf('-');
+      let gname=dashIdx>=0?groupCell.slice(dashIdx+1):groupCell;
+      gname=gname.replace('營業三部','').replace('營業四部','').trim();
+      individuals.push({emp,name,gname,dept,actual,rich,pct:pctVal});
+    }
+  }
+
+  // 區域競賽
+  const wsR=wb.Sheets['區域競賽'];
+  const regions=[];
+  if(wsR){
+    const raws=XLSX.utils.sheet_to_json(wsR,{header:1,defval:null});
+    let currentTeam='', currentDept=3;
+    for(let i=0;i<raws.length;i++){
+      const r=raws[i];
+      if(!r) continue;
+      if(r[1]==='營業三部'){currentDept=3;continue;}
+      if(r[1]==='營業四部'){currentDept=4;continue;}
+      if(r[0]&&String(r[0]).trim()!=='各區理級團隊') currentTeam=String(r[0]).trim();
+      if(r[1]==='合計'&&currentTeam){
+        regions.push({team:currentTeam,dept:currentDept,actual:r[2]||0,rich:r[3]||0,pct:r[4]||0});
+        currentTeam='';
+      }
+    }
+  }
+
+  return { depts, groups, individuals, regions, dateLabel, uploadedAt: nowStr() };
+}
+
+// ── RENDER ALL（從 Firebase 收到資料後呼叫）──
+window.renderAll = function(data){
+  if(data.depts) renderDeptCards(data.depts);
+  if(data.groups){
+    renderGroupTable('tbl-cumul',data.groups,'cumul');
+    renderGroupTable('tbl-daily',data.groups,'daily');
+  }
+  if(data.individuals){
+    fullIndividuals=[...data.individuals].sort((a,b)=>b.pct-a.pct);
+    renderPersonal(data.individuals);
+    renderFullTable(fullIndividuals);
+  }
+  if(data.regions) renderRegionTable(data.regions);
+  document.getElementById('loading-overlay').classList.remove('show');
+};
+
+// ── DEPT CARDS ──
+function renderDeptCards(depts){
+  ['d3','d4'].forEach(k=>{
+    const p=depts[k].cumul_pct||0;
+    const dp=depts[k].daily_pct||0;
+    document.getElementById(k+'-pct').textContent=pct(p);
+    document.getElementById(k+'-sub').textContent='當日占比 '+pct(dp);
+    setTimeout(()=>{ document.getElementById(k+'-bar').style.width=Math.min(p*100,100)+'%'; },80);
+    const hit=p>=TARGET;
+    document.getElementById(k+'-dot').className='dot '+(hit?'dot-g':'dot-r');
+    document.getElementById(k+'-txt').textContent=hit?'✓ 已達目標 50%':'目標 ≧ 50%，差 '+pct(TARGET-p);
+  });
+}
+
+// ── REGION TABLE ──
+function renderRegionTable(regions){
+  const el=document.getElementById('tbl-region');
+  if(!regions||!regions.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">🗺️</div>找不到區域競賽資料</div>';
+    return;
+  }
+  const sorted=[...regions].sort((a,b)=>b.pct-a.pct);
+  let h=`<div class="group-row hdr">
+    <div class="gr-rank">#</div>
+    <div class="gr-name hdr-txt">理級團隊</div>
+    <div class="gr-actual hdr-txt">實際</div>
+    <div class="gr-rich hdr-txt">iRich</div>
+    <div class="gr-pct hdr-txt">佔比</div>
+  </div>`;
+  sorted.forEach((g,i)=>{
+    const rank=i+1;
+    const hit=g.pct>=TARGET;
+    const icon=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
+    const badge=hit?'<span class="badge badge-ok">達標</span>':'<span class="badge badge-no">未達</span>';
+    const dc=g.dept===3?'var(--gold-light)':'#80C0FF';
+    const dl=g.dept===3?'三部':'四部';
+    h+=`<div class="group-row">
+      <div class="gr-rank" style="font-size:${rank<=3?'16px':'11px'}">${icon}</div>
+      <div class="gr-name"><span class="dept-tag" style="color:${dc}">${dl}</span>${g.team}${badge}</div>
+      <div class="gr-actual">${num(g.actual)}</div>
+      <div class="gr-rich">${num(g.rich)}</div>
+      <div class="gr-pct ${hit?'c-green':'c-red'}">${pct(g.pct)}</div>
+    </div>`;
+  });
+  el.innerHTML=h;
+}
+
+// ── GROUP TABLE ──
+function renderGroupTable(containerId,groups,mode){
+  const pKey=mode==='cumul'?'cumul_pct':'daily_pct';
+  const aKey=mode==='cumul'?'cumul_actual':'daily_actual';
+  const rKey=mode==='cumul'?'cumul_rich':'daily_rich';
+  const sorted=[...groups].sort((a,b)=>(b[pKey]||0)-(a[pKey]||0));
+  let h=`<div class="group-row hdr">
+    <div class="gr-rank">#</div>
+    <div class="gr-name hdr-txt">組別</div>
+    <div class="gr-actual hdr-txt">實際</div>
+    <div class="gr-rich hdr-txt">iRich</div>
+    <div class="gr-pct hdr-txt">占比</div>
+  </div>`;
+  sorted.forEach((g,i)=>{
+    const rank=i+1;
+    const v=g[pKey]||0;
+    const hit=v>=TARGET;
+    const dc=g.dept===3?'var(--gold-light)':'#80C0FF';
+    const dl=g.dept===3?'三部':'四部';
+    const icon=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
+    const badge=hit?'<span class="badge badge-ok">達標</span>':'<span class="badge badge-no">未達</span>';
+    h+=`<div class="group-row">
+      <div class="gr-rank" style="font-size:${rank<=3?'16px':'11px'}">${icon}</div>
+      <div class="gr-name"><span class="dept-tag" style="color:${dc}">${dl}</span>${g.name}${badge}</div>
+      <div class="gr-actual">${num(g[aKey])}</div>
+      <div class="gr-rich">${num(g[rKey])}</div>
+      <div class="gr-pct ${hit?'c-green':'c-red'}">${pct(v)}</div>
+    </div>`;
+  });
+  document.getElementById(containerId).innerHTML=h;
+}
+
+// ── PERSONAL RANKING ──
+function renderPersonal(individuals){
+  const eligible=individuals.filter(p=>p.pct>=TARGET).sort((a,b)=>b.pct-a.pct||b.rich-a.rich).slice(0,10);
+  if(eligible.length===0){
+    document.getElementById('personal-rank').innerHTML='<div class="empty"><div class="empty-icon">🏅</div>暫無符合條件人員（佔比≧50%）</div>';
+    return;
+  }
+  let h='';
+  eligible.forEach((p,i)=>{
+    const r=i+1;
+    const cls=r===1?'r1':r===2?'r2':r===3?'r3':'';
+    const nc=r===1?'g1':r===2?'g2':r===3?'g3':'';
+    const icon=r<=3?['🥇','🥈','🥉'][r-1]:r;
+    const dc=p.dept===3?'var(--gold-light)':'#80C0FF';
+    const dl=p.dept===3?'營業三部':'營業四部';
+    h+=`<div class="rank-item ${cls}">
+      <div class="rn ${nc}">${icon}</div>
+      <div class="ri">
+        <div class="ri-name">${p.name}</div>
+        <div class="ri-group"><span style="color:${dc}">${dl}</span>｜${p.gname}</div>
+        <div class="ri-bar"><div class="ri-fill" style="width:${Math.min(p.pct*100,100)}%"></div><div class="ri-target"></div></div>
+      </div>
+      <div class="rr">
+        <div class="rr-pct">${pct(p.pct)}</div>
+        <div class="rr-detail">${p.rich} / ${p.actual} 筆</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('personal-rank').innerHTML=h;
+}
+
+// ── FULL TABLE ──
+function renderFullTable(data){
+  if(!data.length){
+    document.getElementById('tbl-full').innerHTML='<div class="empty"><div class="empty-icon">👥</div>無資料</div>';
+    return;
+  }
+  let h=`<div class="group-row hdr">
+    <div class="gr-rank">#</div>
+    <div class="gr-name hdr-txt">姓名／組別</div>
+    <div class="gr-actual hdr-txt">實際</div>
+    <div class="gr-rich hdr-txt">iRich</div>
+    <div class="gr-pct hdr-txt">占比</div>
+  </div>`;
+  data.forEach((p,i)=>{
+    const hit=p.pct>=TARGET;
+    const dc=p.dept===3?'var(--gold-light)':'#80C0FF';
+    h+=`<div class="group-row">
+      <div class="gr-rank" style="font-size:11px;color:var(--muted)">${i+1}</div>
+      <div class="gr-name">
+        <div style="font-size:12px;font-weight:600">${p.name}</div>
+        <div style="font-size:10px;color:${dc};margin-top:1px">${p.gname}</div>
+      </div>
+      <div class="gr-actual">${p.actual}</div>
+      <div class="gr-rich">${p.rich}</div>
+      <div class="gr-pct ${hit?'c-green':'c-red'}">${pct(p.pct)}</div>
+    </div>`;
+  });
+  document.getElementById('tbl-full').innerHTML=h;
+}
+
+function filterFull(q){
+  const kw=q.trim().toLowerCase();
+  const filtered=kw?fullIndividuals.filter(p=>p.name.includes(kw)||p.gname.toLowerCase().includes(kw)):fullIndividuals;
+  renderFullTable(filtered);
+}
+
+function switchTab(btn,targetId){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(targetId).classList.add('active');
+}
+</script>
+</body>
+</html>
