@@ -3,774 +3,1119 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>會員佔比競賽戰報｜昇恒昌</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-<!-- ═══════════════════════════════════════════════
-     ☁️ Google Apps Script 設定區（只需填這一行）
-     把下方的網址換成你的 Apps Script 部署網址
-════════════════════════════════════════════════ -->
-<script>
-  // ★ 唯一需要填的東西：把引號內換成你的 Apps Script 網址
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbytCPAY7jMck5pMaXp2YWfZsoFM6OhwSBUJSDuTtyNb4vGJXafDMHTVCb2Kn3SQdXuN/exec";
-
-  // ── 上傳資料到 Google 試算表 ──
-  window.saveToFirebase = async function(payload) {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
-    });
-    const result = await res.json();
-    if (!result.ok) throw new Error(result.error || '儲存失敗');
-  };
-
-  // ── 頁面載入時自動從 Google 試算表抓資料 ──
-  async function loadFromCloud() {
-    try {
-      const res = await fetch(GAS_URL + '?action=read');
-      const data = await res.json();
-      if (data && data.dateLabel) {
-        renderAll(data);
-        document.getElementById('updated-badge').style.display = 'inline-block';
-        document.getElementById('period-badge').textContent = data.dateLabel || '—';
-        document.getElementById('report-date-label').textContent = data.dateLabel ? '資料期間：' + data.dateLabel : '';
-        document.getElementById('footer-txt').textContent = '昇恒昌免稅城｜桃園機場 T2 C 出境｜' + (data.dateLabel || '');
-        document.getElementById('last-update').textContent = data.uploadedAt ? '上次更新：' + data.uploadedAt : '';
-      } else {
-        document.getElementById('loading-overlay').classList.remove('show');
-        document.getElementById('period-badge').textContent = '尚無資料';
-      }
-    } catch(e) {
-      document.getElementById('loading-overlay').classList.remove('show');
-      document.getElementById('period-badge').textContent = '載入失敗';
-      console.error('載入雲端資料失敗：', e);
-    }
-  }
-
-  // 頁面準備好後執行
-  document.addEventListener('DOMContentLoaded', loadFromCloud);
-</script>
-
+<title>海烏烏魚子 · 互動教育訓練</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
-  :root {
-    --gold:#E8A820; --gold-light:#FFD060; --gold-dim:#9A6A10;
-    --navy:#0F2035; --navy-mid:#162A45; --navy-card:#1E3550;
-    --navy-border:#2E5070; --white:#F5F0E8; --muted:#9ABCDA;
-    --green:#2EDB8A; --red:#FF5A5A; --blue:#60B0FF;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(160deg,#0F2035 0%,#142840 50%,#0F1E30 100%);color:var(--white);min-height:100vh;}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
 
-  header{background:linear-gradient(135deg,#0A1828,#1A3050,#0F2035);border-bottom:2px solid rgba(232,168,32,0.4);padding:18px 20px 14px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
-  .header-inner{max-width:940px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-  .brand{display:flex;align-items:center;gap:12px;}
-  .brand-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#0A1828;flex-shrink:0;box-shadow:0 0 16px rgba(232,168,32,0.4);}
-  .brand-text{font-size:12px;color:var(--muted);line-height:1.4;}
-  .brand-text strong{display:block;color:var(--white);font-size:16px;font-weight:700;}
-  .period-badge{background:rgba(232,168,32,0.2);color:var(--gold-light);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid rgba(232,168,32,0.5);}
-  .admin-btn{background:rgba(255,255,255,0.07);border:1px solid var(--navy-border);color:var(--muted);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:5px;}
-  .admin-btn:hover{border-color:var(--gold-dim);color:var(--gold-light);}
-  .admin-btn.unlocked{background:rgba(46,219,138,0.12);border-color:rgba(46,219,138,0.4);color:var(--green);}
+:root {
+  --gold: #F5C842;
+  --gold-mid: #C9952A;
+  --gold-dark: #8B6914;
+  --gold-glow: rgba(197,149,42,0.2);
+  --obsidian: #09090B;
+  --navy: #0D0E18;
+  --card: #141624;
+  --card2: #1C1F35;
+  --border: #252A45;
+  --text: #EDE0C8;
+  --muted: #8A8099;
+  --red: #E05A3A;
+  --green: #3DB87A;
+}
 
-  /* LOADING */
-  .loading-bar{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold));background-size:200%;animation:shimmer 1.5s infinite;display:none;}
-  .loading-bar.show{display:block;}
-  @keyframes shimmer{0%{background-position:200%}100%{background-position:-200%}}
-  .loading-overlay{position:fixed;inset:0;background:rgba(15,32,53,0.85);z-index:998;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(4px);}
-  .loading-overlay.show{display:flex;}
-  .loading-spinner{width:40px;height:40px;border:3px solid var(--navy-border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .loading-text{color:var(--muted);font-size:13px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--obsidian);color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7;overflow-x:hidden;}
 
-  /* MODAL */
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
-  .modal-overlay.show{display:flex;}
-  .modal-box{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:18px;padding:28px 24px;width:min(340px,90vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);}
-  .modal-icon{font-size:36px;margin-bottom:10px;}
-  .modal-title{font-size:15px;font-weight:700;margin-bottom:6px;color:var(--white);}
-  .modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6;}
-  .modal-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--navy-border);border-radius:10px;padding:11px 14px;color:var(--white);font-family:inherit;font-size:14px;outline:none;text-align:center;letter-spacing:2px;margin-bottom:14px;transition:border-color .2s;}
-  .modal-input:focus{border-color:var(--gold-dim);}
-  .modal-err{font-size:11px;color:var(--red);margin-top:-8px;margin-bottom:12px;min-height:16px;}
-  .modal-btns{display:flex;gap:10px;}
-  .modal-btn{flex:1;padding:10px;border-radius:10px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
-  .modal-btn.cancel{background:rgba(255,255,255,0.07);color:var(--muted);}
-  .modal-btn.confirm{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#0A1828;}
-  .modal-btn.confirm:hover{filter:brightness(1.1);}
+/* ── SIDEBAR ── */
+#sidebar {
+  position:fixed;top:0;left:0;bottom:0;width:260px;
+  background:var(--navy);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:200;
+  transition:transform 0.3s;
+}
+.sidebar-header {
+  padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);
+  font-family:'Noto Serif TC',serif;font-size:1rem;
+  color:var(--gold);font-weight:700;line-height:1.3;
+}
+.sidebar-header small{display:block;font-size:0.7rem;color:var(--muted);font-family:'Noto Sans TC',sans-serif;font-weight:400;margin-top:0.2rem;}
+.sidebar-score {
+  padding:0.8rem 1.4rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:0.8rem;
+}
+.score-ring{position:relative;width:44px;height:44px;flex-shrink:0;}
+.score-ring svg{transform:rotate(-90deg);}
+.score-ring .bg{stroke:var(--border);}
+.score-ring .fill{stroke:var(--gold);stroke-dasharray:100 100;stroke-dashoffset:100;transition:stroke-dashoffset 0.6s;}
+.score-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--gold);}
+.score-text small{display:block;font-size:0.72rem;color:var(--muted);}
+.score-text strong{font-size:0.88rem;color:var(--text);}
 
-  /* UPLOAD */
-  .upload-zone{max-width:940px;margin:22px auto 0;padding:0 16px;}
-  .upload-locked-msg{background:rgba(255,90,90,0.08);border:1px dashed rgba(255,90,90,0.3);border-radius:14px;padding:18px 20px;text-align:center;color:rgba(255,150,150,0.8);font-size:13px;}
-  .upload-locked-msg span{font-size:26px;display:block;margin-bottom:6px;}
-  .upload-box{border:2px dashed var(--navy-border);border-radius:14px;padding:26px 20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(30,53,80,0.6);position:relative;backdrop-filter:blur(4px);}
-  .upload-box:hover,.upload-box.drag{border-color:var(--gold);background:rgba(232,168,32,0.08);}
-  .upload-box input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-  .upload-icon{font-size:32px;margin-bottom:8px;}
-  .upload-title{font-size:14px;font-weight:700;color:var(--white);margin-bottom:4px;}
-  .upload-sub{font-size:11px;color:var(--muted);}
-  .upload-hint{font-size:10px;color:var(--gold-dim);margin-top:6px;}
-  .file-loaded{background:rgba(46,219,138,0.08)!important;border-color:rgba(46,219,138,0.4)!important;}
-  .updated-badge{font-size:11px;color:var(--green);background:rgba(46,219,138,0.12);border:1px solid rgba(46,219,138,0.3);border-radius:20px;padding:3px 10px;display:none;}
+#chapter-nav{flex:1;overflow-y:auto;padding:0.6rem 0;}
+.nav-item {
+  display:flex;align-items:center;gap:0.75rem;
+  padding:0.65rem 1.4rem;cursor:pointer;
+  font-size:0.84rem;color:var(--muted);
+  transition:background 0.2s,color 0.2s;
+  border-left:3px solid transparent;
+}
+.nav-item:hover{background:var(--gold-glow);color:var(--text);}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(197,149,42,0.08);}
+.nav-item.done .nav-status{color:var(--green);}
+.nav-item.done{color:var(--text);}
+.nav-num{width:22px;height:22px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;transition:background 0.2s;}
+.nav-item.active .nav-num{background:var(--gold);color:#000;}
+.nav-item.done .nav-num{background:var(--green);color:#000;}
+.nav-status{margin-left:auto;font-size:0.8rem;}
+.sidebar-footer{padding:1rem 1.4rem;border-top:1px solid var(--border);}
+.reset-btn{width:100%;padding:0.5rem;font-size:0.78rem;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;transition:all 0.2s;}
+.reset-btn:hover{border-color:var(--red);color:var(--red);}
 
-  /* RULES TABLE */
-  .rules-section{max-width:940px;margin:22px auto 0;padding:0 16px;}
-  .rules-card{background:rgba(30,53,80,0.7);border:1px solid var(--navy-border);border-radius:16px;overflow:hidden;backdrop-filter:blur(4px);}
-  .rules-header{background:linear-gradient(135deg,rgba(232,168,32,0.18),rgba(232,168,32,0.06));padding:12px 16px;border-bottom:1px solid var(--navy-border);display:flex;align-items:center;gap:8px;}
-  .rules-title{font-size:12px;font-weight:700;color:var(--gold-light);letter-spacing:1px;}
-  .rules-table{width:100%;border-collapse:collapse;font-size:11.5px;}
-  .rules-table th{background:rgba(0,0,0,0.2);color:var(--muted);font-weight:600;padding:9px 14px;text-align:center;font-size:10.5px;letter-spacing:.5px;}
-  .rules-table td{padding:9px 14px;border-top:1px solid rgba(255,255,255,0.04);color:var(--white);vertical-align:middle;}
-  .rules-table tr:hover td{background:rgba(255,255,255,0.02);}
-  .rules-table td:first-child{text-align:center;font-weight:700;color:var(--gold-light);white-space:nowrap;}
-  .rules-table td:nth-child(2){text-align:center;color:var(--green);font-weight:600;}
-  .rules-table td:last-child{color:rgba(240,230,200,0.85);font-size:11px;line-height:1.7;}
-  .sub-row td:first-child{color:var(--muted);font-size:10px;font-weight:400;}
+/* ── MOBILE HEADER ── */
+#mobile-header{
+  display:none;position:fixed;top:0;left:0;right:0;height:54px;
+  background:var(--navy);border-bottom:1px solid var(--border);
+  align-items:center;padding:0 1rem;z-index:300;gap:1rem;
+}
+#hamburger{background:none;border:none;color:var(--gold);font-size:1.4rem;cursor:pointer;}
+.mobile-title{font-family:'Noto Serif TC',serif;font-size:0.95rem;color:var(--gold);font-weight:700;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:199;}
 
-  /* DEPT CARDS */
-  .hero{max-width:940px;margin:22px auto 0;padding:0 16px;}
-  .dept-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;}
-  .dept-card{background:rgba(30,53,80,0.7);border:1px solid var(--navy-border);border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;backdrop-filter:blur(4px);}
-  .dept-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light));}
-  .dept-card.dept4::before{background:linear-gradient(90deg,#4090D0,#80C0FF);}
-  .dept-label{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px;letter-spacing:.5px;}
-  .dept-name{font-size:14px;font-weight:700;margin-bottom:12px;}
-  .dept-pct{font-size:36px;font-weight:900;letter-spacing:-1px;line-height:1;}
-  .dept-pct.gold{color:var(--gold-light);text-shadow:0 0 20px rgba(232,168,32,0.35);}
-  .dept-pct.blue{color:#80C0FF;text-shadow:0 0 20px rgba(96,176,255,0.35);}
-  .dept-sub{font-size:11px;color:var(--muted);margin-top:5px;}
-  .dept-bar-bg{background:rgba(255,255,255,0.08);border-radius:4px;height:7px;overflow:hidden;margin-top:12px;}
-  .dept-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width 1.2s cubic-bezier(.4,0,.2,1);}
-  .dept4 .dept-bar-fill{background:linear-gradient(90deg,#4090D0,#80C0FF);}
-  .dept-target{font-size:10px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:5px;}
-  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-  .dot-g{background:var(--green);box-shadow:0 0 6px rgba(46,219,138,0.5);}
-  .dot-r{background:var(--red);}
+/* ── MAIN ── */
+#main{margin-left:260px;min-height:100vh;}
 
-  /* SECTION */
-  .section{max-width:940px;margin:24px auto 0;padding:0 16px;}
-  .section-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
-  .section-label{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--gold-light);}
-  .section-line{flex:1;height:1px;background:var(--navy-border);}
+/* ── WELCOME ── */
+#welcome-screen {
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:3rem 2rem;
+  background:radial-gradient(ellipse 80% 60% at 50% 40%, #150e00, var(--obsidian) 70%);
+}
+.welcome-inner{text-align:center;max-width:600px;}
+.welcome-badge{display:inline-block;font-size:0.72rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold-mid);border:1px solid var(--gold-dark);padding:0.3rem 1rem;border-radius:20px;margin-bottom:1.5rem;}
+.welcome-title{font-family:'Noto Serif TC',serif;font-size:clamp(1.8rem,4vw,3rem);font-weight:900;color:var(--gold);line-height:1.2;margin-bottom:1rem;text-shadow:0 0 60px rgba(245,200,66,0.25);}
+.welcome-sub{color:var(--muted);font-size:0.95rem;margin-bottom:2.5rem;line-height:1.8;}
+.welcome-stats{display:flex;gap:2rem;justify-content:center;margin-bottom:2.5rem;}
+.stat-item{text-align:center;}
+.stat-num{font-family:'Noto Serif TC',serif;font-size:1.8rem;font-weight:700;color:var(--gold);}
+.stat-label{font-size:0.75rem;color:var(--muted);}
+.start-btn{background:linear-gradient(135deg,var(--gold-dark),var(--gold-mid));color:#000;font-weight:700;font-size:1rem;padding:0.9rem 2.5rem;border:none;border-radius:8px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:opacity 0.2s,transform 0.2s;letter-spacing:0.05em;}
+.start-btn:hover{opacity:0.88;transform:translateY(-2px);}
 
-  /* TABS */
-  .tabs{display:flex;gap:4px;background:rgba(30,53,80,0.6);border-radius:10px;padding:4px;margin-bottom:14px;border:1px solid var(--navy-border);}
-  .tab{flex:1;padding:9px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
-  .tab.active{background:rgba(232,168,32,0.15);color:var(--gold-light);border:1px solid rgba(232,168,32,0.25);}
-  .tab-content{display:none;}
-  .tab-content.active{display:block;}
+/* ── CHAPTER CONTENT ── */
+#content-area{display:none;padding:2.5rem 2.5rem 6rem;}
+.chapter-header{margin-bottom:2.5rem;}
+.ch-tag{font-size:0.7rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold-mid);margin-bottom:0.5rem;}
+.ch-title{font-family:'Noto Serif TC',serif;font-size:clamp(1.4rem,3vw,2.2rem);font-weight:700;color:var(--gold);line-height:1.3;}
+.ch-divider{width:40px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);margin:1rem 0 0;}
 
-  /* TABLE */
-  .group-table{background:rgba(30,53,80,0.6);border:1px solid var(--navy-border);border-radius:14px;overflow:hidden;backdrop-filter:blur(4px);}
-  .group-row{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.05);gap:10px;transition:background .15s;}
-  .group-row:last-child{border-bottom:none;}
-  .group-row:hover{background:rgba(255,255,255,0.04);}
-  .group-row.hdr{background:rgba(0,0,0,0.2);padding:9px 16px;}
-  .gr-rank{width:28px;flex-shrink:0;font-size:13px;color:var(--muted);text-align:center;}
-  .gr-name{flex:1;font-size:12px;font-weight:600;min-width:0;}
-  .gr-name .dept-tag{font-size:9px;font-weight:700;margin-right:4px;}
-  .gr-name .badge{display:inline-block;border-radius:4px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:4px;}
-  .badge-ok{background:rgba(46,219,138,0.15);color:var(--green);border:1px solid rgba(46,219,138,0.3);}
-  .badge-no{background:rgba(255,90,90,0.12);color:var(--red);border:1px solid rgba(255,90,90,0.25);}
-  .gr-actual{width:54px;text-align:right;font-size:11px;color:var(--muted);flex-shrink:0;}
-  .gr-rich{width:54px;text-align:right;font-size:11px;color:var(--white);flex-shrink:0;}
-  .gr-pct{width:60px;text-align:right;font-size:14px;font-weight:700;flex-shrink:0;}
-  .c-green{color:var(--green);}
-  .c-red{color:var(--red);}
-  .hdr-txt{font-size:10px;color:var(--muted);font-weight:500;}
+/* Content blocks */
+.content-block{margin-bottom:2rem;}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:1rem;}
+.info-card h3{color:var(--gold);font-size:1rem;margin-bottom:0.8rem;font-family:'Noto Serif TC',serif;}
+.info-card p,.info-card li{font-size:0.88rem;color:var(--muted);line-height:1.8;}
+.info-card ul{padding-left:1.2rem;}
+.info-card li{margin-bottom:0.3rem;}
+.info-card strong{color:var(--text);}
+.highlight-box{background:rgba(197,149,42,0.08);border-left:3px solid var(--gold-mid);padding:1rem 1.2rem;border-radius:0 8px 8px 0;font-size:0.88rem;color:var(--text);margin:0.8rem 0;}
+.warn-box{background:rgba(224,90,58,0.08);border-left:3px solid var(--red);padding:1rem 1.2rem;border-radius:0 8px 8px 0;font-size:0.88rem;color:var(--text);margin:0.8rem 0;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+.tag-row{display:flex;flex-wrap:wrap;gap:0.5rem;margin:0.8rem 0;}
+.tag{background:rgba(197,149,42,0.12);border:1px solid var(--gold-dark);color:var(--gold-mid);font-size:0.78rem;padding:0.2rem 0.6rem;border-radius:4px;}
 
-  /* PERSONAL RANK */
-  .rank-list{display:flex;flex-direction:column;gap:10px;}
-  .rank-item{background:rgba(30,53,80,0.6);border:1px solid var(--navy-border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(4px);}
-  .rank-item.r1{border-color:rgba(255,215,0,.45);background:rgba(255,215,0,0.05);}
-  .rank-item.r2{border-color:rgba(192,192,192,.35);}
-  .rank-item.r3{border-color:rgba(205,127,50,.35);}
-  .rn{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0;background:var(--navy-border);color:var(--muted);}
-  .rn.g1{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a1200;box-shadow:0 0 12px rgba(255,215,0,0.35);}
-  .rn.g2{background:linear-gradient(135deg,#C0C0C0,#E8E8E8);color:#1a1a1a;}
-  .rn.g3{background:linear-gradient(135deg,#CD7F32,#E8A060);color:#fff;}
-  .ri{flex:1;min-width:0;}
-  .ri-name{font-size:13px;font-weight:700;}
-  .ri-group{font-size:10px;color:var(--muted);margin-top:2px;}
-  .ri-bar{margin-top:8px;background:rgba(255,255,255,0.08);border-radius:3px;height:5px;overflow:visible;position:relative;}
-  .ri-fill{height:100%;border-radius:3px;background:var(--green);transition:width 1s .1s cubic-bezier(.4,0,.2,1);}
-  .rank-item.r1 .ri-fill{background:linear-gradient(90deg,var(--gold),var(--gold-light));}
-  .ri-target{position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,0.35);border-radius:1px;left:50%;}
-  .rr{text-align:right;flex-shrink:0;}
-  .rr-pct{font-size:22px;font-weight:900;color:var(--green);}
-  .rank-item.r1 .rr-pct{color:var(--gold-light);text-shadow:0 0 12px rgba(232,168,32,0.4);}
-  .rr-detail{font-size:10px;color:var(--muted);margin-top:1px;}
+/* Compare table */
+.ctable{width:100%;border-collapse:collapse;font-size:0.83rem;margin-top:0.5rem;}
+.ctable th,.ctable td{padding:0.8rem;border-bottom:1px solid var(--border);vertical-align:top;text-align:left;}
+.ctable th{background:var(--card2);color:var(--muted);}
+.ctable th.g{color:var(--gold);}
+.ctable th.r{color:var(--red);}
+.ctable td:first-child{color:var(--gold-mid);font-weight:600;white-space:nowrap;}
+.scam-text{color:var(--red);font-size:0.78rem;margin-top:0.2rem;}
+.true-text{color:var(--green);font-size:0.78rem;}
 
-  /* SEARCH */
-  .search-wrap{position:relative;margin-bottom:12px;}
-  .search-input{width:100%;background:rgba(30,53,80,0.6);border:1px solid var(--navy-border);border-radius:10px;padding:10px 14px 10px 38px;color:var(--white);font-family:inherit;font-size:13px;outline:none;transition:border-color .2s;}
-  .search-input::placeholder{color:var(--muted);}
-  .search-input:focus{border-color:var(--gold-dim);}
-  .s-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted);}
+/* Color swatches */
+.swatch-row{display:flex;gap:0.8rem;flex-wrap:wrap;align-items:flex-end;}
+.swatch{text-align:center;}
+.swatch-box{width:60px;height:60px;border-radius:6px;margin-bottom:0.4rem;border:1px solid rgba(255,255,255,0.06);}
+.swatch-name{font-size:0.72rem;color:var(--muted);}
 
-  .empty{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
-  .empty-icon{font-size:34px;margin-bottom:10px;}
+/* Process steps */
+.steps-flow{display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;margin:1rem 0;}
+.step-pill{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:0.3rem 0.8rem;font-size:0.78rem;color:var(--muted);white-space:nowrap;}
+.step-arrow{color:var(--gold-dark);font-size:0.8rem;}
 
-  .notice{max-width:940px;margin:22px auto 0;padding:0 16px;}
-  .notice-box{background:rgba(232,168,32,0.07);border:1px solid rgba(232,168,32,0.22);border-radius:14px;padding:14px 16px;font-size:11px;color:rgba(240,220,160,.85);line-height:1.9;}
-  .notice-box strong{color:var(--gold-light);}
+/* Moisture bars */
+.moisture-row{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:0.8rem;}
+.m-card{border-radius:10px;padding:1.2rem;text-align:center;border:1px solid var(--border);}
+.m-card.bad{background:rgba(224,90,58,0.05);}
+.m-card.good{background:rgba(197,149,42,0.08);border-color:var(--gold-dark);box-shadow:0 0 20px rgba(197,149,42,0.1);}
+.m-label{font-size:0.72rem;letter-spacing:0.15em;padding:0.2rem 0.6rem;border-radius:10px;display:inline-block;margin-bottom:0.6rem;}
+.m-label.bad{background:rgba(224,90,58,0.15);color:var(--red);}
+.m-label.good{background:rgba(197,149,42,0.15);color:var(--gold);}
+.m-name{font-family:'Noto Serif TC',serif;font-size:1rem;font-weight:700;margin-bottom:0.4rem;}
+.m-card.good .m-name{color:var(--gold);}
+.m-card.bad .m-name{color:var(--muted);}
+.m-desc{font-size:0.8rem;color:var(--muted);line-height:1.6;}
 
-  footer{max-width:940px;margin:30px auto 0;padding:0 16px 36px;text-align:center;font-size:10px;color:rgba(255,255,255,0.2);}
+/* Talk rows */
+.talk-pair{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.t-card{border-radius:8px;padding:1rem;font-size:0.85rem;line-height:1.7;}
+.t-card.avoid{background:rgba(224,90,58,0.06);border:1px solid rgba(224,90,58,0.25);}
+.t-card.use{background:rgba(197,149,42,0.06);border:1px solid rgba(197,149,42,0.3);}
+.t-label{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.3rem;}
+.avoid .t-label{color:var(--red);}
+.use .t-label{color:var(--gold-mid);}
+.t-card p{color:var(--muted);}
 
-  @media(max-width:480px){
-    .dept-pct{font-size:28px;}
-    .gr-actual,.gr-rich{display:none;}
-    .rules-table td:last-child{font-size:10px;}
-  }
+/* ── QUIZ ── */
+#quiz-area{display:none;padding:2.5rem;max-width:700px;}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.quiz-title{font-family:'Noto Serif TC',serif;font-size:1.2rem;color:var(--gold);}
+.quiz-progress{font-size:0.82rem;color:var(--muted);}
+.quiz-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:2rem;}
+.quiz-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));border-radius:2px;transition:width 0.4s;}
+.question-num{font-size:0.75rem;color:var(--gold-mid);letter-spacing:0.2em;margin-bottom:0.6rem;}
+.question-text{font-size:1.05rem;color:var(--text);margin-bottom:1.8rem;line-height:1.7;font-weight:500;}
+.options{display:flex;flex-direction:column;gap:0.7rem;}
+.option-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;text-align:left;color:var(--text);font-size:0.9rem;cursor:pointer;transition:border-color 0.2s,background 0.2s;font-family:'Noto Sans TC',sans-serif;line-height:1.5;}
+.option-btn:hover:not(:disabled){border-color:var(--gold-mid);background:rgba(197,149,42,0.06);}
+.option-btn.correct{border-color:var(--green);background:rgba(61,184,122,0.1);color:var(--green);}
+.option-btn.wrong{border-color:var(--red);background:rgba(224,90,58,0.1);color:var(--red);}
+.option-btn.reveal{border-color:var(--green);background:rgba(61,184,122,0.06);color:var(--green);}
+.option-btn:disabled{cursor:default;}
+.feedback-box{margin-top:1.2rem;padding:1rem 1.2rem;border-radius:8px;font-size:0.88rem;line-height:1.7;display:none;}
+.feedback-box.correct{background:rgba(61,184,122,0.1);border:1px solid rgba(61,184,122,0.3);color:var(--green);}
+.feedback-box.wrong{background:rgba(224,90,58,0.08);border:1px solid rgba(224,90,58,0.25);color:var(--text);}
+.next-btn{margin-top:1.5rem;background:linear-gradient(135deg,var(--gold-dark),var(--gold-mid));color:#000;font-weight:700;font-size:0.9rem;padding:0.75rem 2rem;border:none;border-radius:8px;cursor:pointer;display:none;font-family:'Noto Sans TC',sans-serif;}
+.next-btn:hover{opacity:0.88;}
+
+/* ── QUIZ RESULT ── */
+#result-area{display:none;padding:2.5rem;max-width:600px;text-align:center;}
+.result-icon{font-size:4rem;margin-bottom:1rem;}
+.result-title{font-family:'Noto Serif TC',serif;font-size:1.6rem;color:var(--gold);margin-bottom:0.5rem;}
+.result-sub{color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem;}
+.result-score{font-family:'Noto Serif TC',serif;font-size:3rem;font-weight:900;color:var(--gold);margin:1rem 0;}
+.result-detail{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem;margin:1.5rem 0;font-size:0.88rem;}
+.result-detail .row{display:flex;justify-content:space-between;padding:0.4rem 0;}
+.result-detail .row:not(:last-child){border-bottom:1px solid var(--border);}
+.result-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;}
+.btn-primary{background:linear-gradient(135deg,var(--gold-dark),var(--gold-mid));color:#000;font-weight:700;font-size:0.9rem;padding:0.75rem 1.8rem;border:none;border-radius:8px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.btn-secondary{background:transparent;color:var(--text);font-size:0.9rem;padding:0.75rem 1.8rem;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.btn-secondary:hover{border-color:var(--gold-mid);color:var(--gold);}
+
+/* ── FINAL SCREEN ── */
+#final-screen{display:none;min-height:100vh;display:none;align-items:center;justify-content:center;padding:3rem 2rem;text-align:center;}
+.final-inner{max-width:560px;}
+.final-title{font-family:'Noto Serif TC',serif;font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:900;color:var(--gold);margin-bottom:1rem;}
+.final-body{color:var(--muted);font-size:0.95rem;line-height:1.9;margin-bottom:2rem;}
+.badge-row{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem;}
+.badge{background:var(--card);border:1px solid var(--gold-dark);border-radius:10px;padding:1rem;font-size:0.82rem;color:var(--gold-mid);text-align:center;min-width:120px;}
+.badge .b-icon{font-size:1.5rem;margin-bottom:0.3rem;}
+
+/* ── CHAPTER COMPLETE BANNER ── */
+#ch-complete{display:none;position:fixed;bottom:2rem;right:2rem;background:var(--green);color:#000;font-weight:700;font-size:0.88rem;padding:0.8rem 1.4rem;border-radius:8px;z-index:500;animation:slideup 0.4s;}
+@keyframes slideup{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── PROGRESS BAR ── */
+#top-bar{position:fixed;top:0;left:260px;right:0;height:3px;background:transparent;z-index:400;}
+#top-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));transition:width 0.3s;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:translateX(0);}
+  #sidebar-overlay.show{display:block;}
+  #mobile-header{display:flex;}
+  #main{margin-left:0;padding-top:54px;}
+  #top-bar{left:0;}
+  #content-area,#quiz-area,#result-area{padding:1.5rem 1rem 5rem;}
+  .two-col,.three-col,.moisture-row,.talk-pair{grid-template-columns:1fr;}
+  .ctable{font-size:0.75rem;}
+  .ctable th,.ctable td{padding:0.5rem;}
+  #welcome-screen{padding:2rem 1rem;}
+  .welcome-stats{gap:1.2rem;}
+}
+
+/* ── FADE ── */
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.5s,transform 0.5s;}
+.fade-in.visible{opacity:1;transform:translateY(0);}
+
+/* shelf */
+.shelf-row{display:flex;align-items:center;gap:1rem;background:var(--card2);border-radius:8px;padding:0.8rem 1rem;margin-bottom:0.6rem;font-size:0.86rem;}
+.shelf-row.rec{border:1px solid var(--gold-dark);}
+.shelf-icon{font-size:1.2rem;flex-shrink:0;}
+.shelf-dur{font-size:0.8rem;color:var(--muted);}
 </style>
 </head>
 <body>
 
-<!-- LOADING OVERLAY -->
-<div class="loading-overlay" id="loading-overlay">
-  <div class="loading-spinner"></div>
-  <div class="loading-text">正在從雲端載入最新資料…</div>
+<div id="top-bar"><div id="top-bar-fill"></div></div>
+
+<!-- MOBILE HEADER -->
+<div id="mobile-header">
+  <button id="hamburger" onclick="toggleSidebar()">☰</button>
+  <span class="mobile-title">海烏教育訓練</span>
 </div>
 
-<!-- PASSWORD MODAL -->
-<div class="modal-overlay" id="pwd-modal">
-  <div class="modal-box">
-    <div class="modal-icon">🔐</div>
-    <div class="modal-title">管理員驗證</div>
-    <div class="modal-sub">請輸入管理員密碼<br>以解鎖資料上傳功能</div>
-    <input class="modal-input" type="password" id="pwd-input" placeholder="••••••••" oninput="clearErr()" onkeydown="if(event.key==='Enter')confirmPwd()">
-    <div class="modal-err" id="modal-err"></div>
-    <div class="modal-btns">
-      <button class="modal-btn cancel" onclick="closeModal()">取消</button>
-      <button class="modal-btn confirm" onclick="confirmPwd()">確認解鎖</button>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sidebar-header">🐟 海烏烏魚子<small>品鑑與銷售培訓系統</small><span id="sidebar-username" style="display:block;font-size:0.72rem;color:var(--gold-mid);margin-top:0.2rem;font-family:'Noto Sans TC',sans-serif;font-weight:400;"></span></div>
+  <div class="sidebar-score">
+    <div class="score-ring">
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <circle class="bg" cx="22" cy="22" r="17" fill="none" stroke-width="3"/>
+        <circle class="fill" id="ring-fill" cx="22" cy="22" r="17" fill="none" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <div class="score-center" id="ring-pct">0%</div>
     </div>
+    <div class="score-text">
+      <strong id="score-display">整體進度</strong>
+      <small id="score-sub">尚未開始</small>
+    </div>
+  </div>
+  <nav id="chapter-nav"></nav>
+  <div class="sidebar-footer">
+    <button class="reset-btn" onclick="resetAll()">🔄 重置所有進度</button>
   </div>
 </div>
 
-<div class="loading-bar" id="loading-bar"></div>
+<!-- MAIN -->
+<div id="main">
 
-<header>
-  <div class="header-inner">
-    <div class="brand">
-      <div class="brand-icon">昇</div>
-      <div class="brand-text">
-        <strong>會員佔比競賽戰報</strong>
-        台籍 iRich 銷售占比即時排名
+  <!-- WELCOME -->
+  <div id="welcome-screen">
+    <div class="welcome-inner fade-in">
+      <div class="welcome-badge">海烏 60 年傳承 · 內部培訓指南</div>
+      <h1 class="welcome-title">透光烏金<br>品鑑與銷售培訓</h1>
+      <p class="welcome-sub">完成 8 大章節學習，每章結束後接受測驗。<br>掌握 95% 市場不懂的商業機密，成為烏金品鑑師。</p>
+      <div class="welcome-stats">
+        <div class="stat-item"><div class="stat-num">8</div><div class="stat-label">培訓章節</div></div>
+        <div class="stat-item"><div class="stat-num">32</div><div class="stat-label">測驗題目</div></div>
+        <div class="stat-item"><div class="stat-num">60</div><div class="stat-label">年品牌傳承</div></div>
       </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-      <span class="updated-badge" id="updated-badge">✓ 雲端資料</span>
-      <button class="admin-btn" id="admin-btn" onclick="toggleAdmin()">
-        <span id="admin-lock-icon">🔒</span>
-        <span id="admin-lock-text">管理員</span>
-      </button>
-      <div class="period-badge" id="period-badge">載入中…</div>
-    </div>
-  </div>
-</header>
-
-<!-- UPLOAD（僅管理員解鎖後顯示） -->
-<div class="upload-zone">
-  <div class="upload-locked-msg" id="upload-locked">
-    <span>☁️</span>
-    資料從雲端自動載入｜如需更新請點右上角「管理員」解鎖後上傳
-  </div>
-  <div class="upload-box" id="upload-box" style="display:none;"
-       ondragover="event.preventDefault();this.classList.add('drag')"
-       ondragleave="this.classList.remove('drag')"
-       ondrop="handleDrop(event)">
-    <input type="file" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
-    <div class="upload-icon" id="upload-icon">📂</div>
-    <div class="upload-title" id="upload-title">上傳最新 Excel 戰報</div>
-    <div class="upload-sub" id="upload-sub">點擊或拖曳「每日會員佔比戰報」.xlsx 至此</div>
-    <div class="upload-hint">上傳後資料自動存到雲端，所有人立即看到最新排名 ☁️</div>
-  </div>
-</div>
-
-<!-- DEPT CARDS -->
-<div class="hero">
-  <div class="dept-cards">
-    <div class="dept-card">
-      <div class="dept-label">部門累計占比</div>
-      <div class="dept-name">營業三部</div>
-      <div class="dept-pct gold" id="d3-pct">—</div>
-      <div class="dept-sub" id="d3-sub">載入中…</div>
-      <div class="dept-bar-bg"><div class="dept-bar-fill" id="d3-bar" style="width:0%"></div></div>
-      <div class="dept-target"><span class="dot" id="d3-dot"></span><span id="d3-txt">目標 ≧ 50%</span></div>
-    </div>
-    <div class="dept-card dept4">
-      <div class="dept-label">部門累計占比</div>
-      <div class="dept-name">營業四部</div>
-      <div class="dept-pct blue" id="d4-pct">—</div>
-      <div class="dept-sub" id="d4-sub">載入中…</div>
-      <div class="dept-bar-bg"><div class="dept-bar-fill" id="d4-bar" style="width:0%"></div></div>
-      <div class="dept-target"><span class="dot" id="d4-dot"></span><span id="d4-txt">目標 ≧ 50%</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.8rem;margin-bottom:1.5rem;">
+        <input id="user-name-input" type="text" placeholder="請輸入您的姓名" maxlength="20"
+          style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);padding:0.75rem 1.2rem;border-radius:8px;font-size:0.95rem;width:260px;outline:none;text-align:center;font-family:'Noto Sans TC',sans-serif;"
+          onfocus="this.style.borderColor='var(--gold-mid)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')startTraining()">
+        <div style="font-size:0.75rem;color:var(--muted);">姓名將用於記錄您的測驗成績</div>
+      </div>
+      <button class="start-btn" onclick="startTraining()">開始培訓 →</button>
     </div>
   </div>
-  <div style="display:flex;justify-content:space-between;margin-top:4px;">
-    <div style="font-size:10px;color:rgba(255,255,255,0.25);" id="last-update"></div>
-    <div style="font-size:10px;color:rgba(255,255,255,0.25);" id="report-date-label"></div>
-  </div>
-</div>
 
-<!-- COMPETITION RULES -->
-<div class="rules-section">
-  <div class="rules-card">
-    <div class="rules-header">
-      <span style="font-size:16px;">🏅</span>
-      <span class="rules-title">競賽規則一覽</span>
+  <!-- CHAPTER CONTENT -->
+  <div id="content-area"></div>
+
+  <!-- QUIZ -->
+  <div id="quiz-area">
+    <div class="quiz-header">
+      <div class="quiz-title" id="quiz-ch-title"></div>
+      <div class="quiz-progress" id="quiz-progress-text"></div>
     </div>
-    <table class="rules-table">
-      <thead>
-        <tr>
-          <th style="width:80px;">競賽層次</th>
-          <th style="width:160px;">低標條件</th>
-          <th>備註說明</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>🗺️ 區域</td>
-          <td>台籍會員佔比 ≥ 50%</td>
-          <td>取理級區域佔比最高者（分三／四部，一／二期）</td>
-        </tr>
-        <tr>
-          <td>👥 組別</td>
-          <td>台籍會員佔比 ≥ 50%</td>
-          <td>取組別會員佔筆最高前三組（<strong style="color:var(--gold-light)">不分三四部</strong>）</td>
-        </tr>
-        <tr>
-          <td>👤 個人</td>
-          <td>台籍會員佔比 ≥ 50%</td>
-          <td>取前三名（三部 3 名；四部 3 名，共 <strong style="color:var(--gold-light)">6 名</strong>）</td>
-        </tr>
-        <tr>
-          <td>👑 註冊王</td>
-          <td>≥ 20 筆</td>
-          <td>組員取前三名（<strong style="color:var(--gold-light)">不分三四部</strong>）</td>
-        </tr>
-        <tr>
-          <td rowspan="2">⭐ VOC<br>好評王</td>
-          <td>組員 ≥ 5 筆</td>
-          <td>組員取前五名（不分三四部）</td>
-        </tr>
-        <tr class="sub-row">
-          <td>組（每組人數 × 1人 2 筆）</td>
-          <td>組別取前三名（<strong style="color:var(--gold-light)">不分三四部</strong>）</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="quiz-bar"><div class="quiz-bar-fill" id="quiz-bar-fill"></div></div>
+    <div class="question-num" id="q-num"></div>
+    <div class="question-text" id="q-text"></div>
+    <div class="options" id="q-options"></div>
+    <div class="feedback-box" id="q-feedback"></div>
+    <button class="next-btn" id="q-next">下一題 →</button>
   </div>
-</div>
 
-<!-- 區域競賽 -->
-<div class="section">
-  <div class="section-head">
-    <span class="section-label">🗺️ 區域競賽排名（理級）</span>
-    <div class="section-line"></div>
+  <!-- RESULT -->
+  <div id="result-area">
+    <div class="result-icon" id="r-icon"></div>
+    <div class="result-title" id="r-title"></div>
+    <div class="result-sub" id="r-sub"></div>
+    <div class="result-score" id="r-score"></div>
+    <div class="result-detail" id="r-detail"></div>
+    <div class="result-actions" id="r-actions"></div>
   </div>
-  <div style="font-size:11px;color:var(--muted);background:rgba(255,255,255,0.03);border:1px solid var(--navy-border);border-radius:10px;padding:9px 14px;margin-bottom:12px;">
-    依各理級團隊合計佔比排名，台籍會員佔比需 ≥ 50%
-  </div>
-  <div class="group-table" id="tbl-region">
-    <div class="empty"><div class="empty-icon">🗺️</div>載入中…</div>
-  </div>
-</div>
 
-<!-- GROUP RANKING -->
-<div class="section" style="margin-top:24px;">
-  <div class="section-head">
-    <span class="section-label">🏆 組別排名</span>
-    <div class="section-line"></div>
+  <!-- FINAL -->
+  <div id="final-screen">
+    <div class="final-inner">
+      <div style="font-size:4rem;margin-bottom:1rem;">🏅</div>
+      <h2 class="final-title">恭喜完成全部培訓！</h2>
+      <p class="final-body">您已掌握頂級烏魚子的品鑑知識與銷售話術。<br>從今天起，您不只是銷售員，更是捍衛烏金文化的品鑑大師。</p>
+      <div class="badge-row" id="final-badges"></div>
+      <div style="background:var(--card);border:1px solid var(--gold-dark);border-radius:12px;padding:1.5rem;margin-bottom:2rem;">
+        <div style="font-family:'Noto Serif TC',serif;color:var(--gold);font-size:1rem;margin-bottom:0.5rem;">信任海烏，就是信任頂級。</div>
+        <div style="font-size:0.85rem;color:var(--muted);">我們銷售的不僅是食材，更是 60 年不妥協的極致工藝。</div>
+      </div>
+      <button class="btn-secondary" onclick="resetAll()">🔄 重新培訓</button>
+    </div>
   </div>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab(this,'tab-cumul')">累計（合計）</button>
-    <button class="tab" onclick="switchTab(this,'tab-daily')">當日</button>
-  </div>
-  <div class="tab-content active" id="tab-cumul">
-    <div class="group-table" id="tbl-cumul"><div class="empty"><div class="empty-icon">📊</div>載入中…</div></div>
-  </div>
-  <div class="tab-content" id="tab-daily">
-    <div class="group-table" id="tbl-daily"><div class="empty"><div class="empty-icon">📊</div>載入中…</div></div>
-  </div>
-</div>
 
-<!-- PERSONAL TOP RANKING -->
-<div class="section" style="margin-top:26px">
-  <div class="section-head">
-    <span class="section-label">👤 個人排名（前10名）</span>
-    <div class="section-line"></div>
-  </div>
-  <div style="font-size:11px;color:var(--muted);background:rgba(255,255,255,0.03);border:1px solid var(--navy-border);border-radius:10px;padding:9px 14px;margin-bottom:12px;">
-    台籍會員佔比須達 50% 方可計入排名，達標者依 <strong style="color:var(--gold-light)">佔比高低</strong> 排序，佔比相同時以 iRich 交易筆數多寡決定
-  </div>
-  <div class="rank-list" id="personal-rank">
-    <div class="empty"><div class="empty-icon">🏅</div>載入中…</div>
-  </div>
-</div>
+</div><!-- /main -->
 
-<!-- FULL TABLE -->
-<div class="section" style="margin-top:26px">
-  <div class="section-head">
-    <span class="section-label">📋 全體人員明細</span>
-    <div class="section-line"></div>
-  </div>
-  <div class="search-wrap">
-    <span class="s-icon">🔍</span>
-    <input class="search-input" type="text" placeholder="搜尋姓名或組別…" oninput="filterFull(this.value)">
-  </div>
-  <div class="group-table" id="tbl-full">
-    <div class="empty"><div class="empty-icon">👥</div>載入中…</div>
-  </div>
-</div>
-
-<div class="notice">
-  <div class="notice-box">
-    <strong>規則說明：</strong>競賽期間 6/15–7/14，台籍 iRich 占比需 ≧ 50% 方計入排名。<br>
-    <strong>獎項：</strong>區域冠軍 ｜ 組別前三（不分部）｜ 個人各部前三共6名 ｜ 註冊王前三 ｜ VOC好評王組員前五／組別前三。<br>
-    <strong>更新方式：</strong>管理員解鎖後上傳最新 Excel，資料自動同步至雲端，所有人立即看到最新排名。
-  </div>
-</div>
-
-<footer id="footer-txt">昇恒昌免稅城｜桃園機場 T2 C 出境</footer>
+<div id="ch-complete"></div>
 
 <script>
-const TARGET = 0.5;
-const ADMIN_HASH = btoa('EverRich2025');
-let isAdminUnlocked = false;
-let fullIndividuals = [];
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
 
-// ── 顯示載入畫面 ──
-document.getElementById('loading-overlay').classList.add('show');
-setTimeout(()=>{ document.getElementById('loading-overlay').classList.remove('show'); }, 3000);
-
-// ── ADMIN ──
-function toggleAdmin(){ isAdminUnlocked ? lockAdmin() : openModal(); }
-function openModal(){
-  document.getElementById('pwd-modal').classList.add('show');
-  setTimeout(()=>document.getElementById('pwd-input').focus(),100);
-}
-function closeModal(){
-  document.getElementById('pwd-modal').classList.remove('show');
-  document.getElementById('pwd-input').value='';
-  document.getElementById('modal-err').textContent='';
-}
-function clearErr(){ document.getElementById('modal-err').textContent=''; }
-function confirmPwd(){
-  const val=document.getElementById('pwd-input').value;
-  if(btoa(val)===ADMIN_HASH){
-    isAdminUnlocked=true;
-    closeModal();
-    document.getElementById('upload-locked').style.display='none';
-    document.getElementById('upload-box').style.display='block';
-    const btn=document.getElementById('admin-btn');
-    btn.classList.add('unlocked');
-    document.getElementById('admin-lock-icon').textContent='🔓';
-    document.getElementById('admin-lock-text').textContent='已解鎖';
-  } else {
-    document.getElementById('modal-err').textContent='❌ 密碼錯誤，請重試';
-    document.getElementById('pwd-input').value='';
-    document.getElementById('pwd-input').focus();
+const CHAPTERS = [
+  {
+    id:0, tag:'序章', title:'成為烏金品鑑師',
+    content: `
+      <div class="info-card fade-in">
+        <h3>🐟 培訓宣言 Manifesto</h3>
+        <p>烏魚子被譽為「<strong>海底人蔘</strong>」，是海中極品御用食材。然而，市場上充斥著<strong>以次充好、魚目混珠的劣質品</strong>。</p>
+        <br>
+        <p>本次培訓將揭開烏金的神秘面紗，賦予您<strong>專家的眼光與話術</strong>，讓您不僅是銷售員，更是捍衛頂級品質的品鑑大師。</p>
+      </div>
+      <div class="three-col fade-in">
+        <div class="info-card">
+          <h3>🌊 解密海洋</h3>
+          <p>洞悉產地真相與氣候變遷帶來的<strong>極致稀缺性</strong>。</p>
+        </div>
+        <div class="info-card">
+          <h3>👁️ 大師之眼</h3>
+          <p>精準鑑定顏色、口感與重量，一眼看穿市場<strong>劣質仿冒品</strong>。</p>
+        </div>
+        <div class="info-card">
+          <h3>🏅 海烏標準</h3>
+          <p>傳承 60 年的國寶級工藝，<strong>無法被複製</strong>的品質保證。</p>
+        </div>
+      </div>
+      <div class="highlight-box fade-in">💡 <strong>學習目標：</strong>完成本培訓後，您能自信地向任何顧客介紹烏魚子的稀缺性、品質鑑別要點與銷售話術。</div>
+    `,
+    quiz: [
+      { q:'烏魚子被譽為什麼，象徵其高貴地位？', opts:['海底人蔘','海中黃金','深海珍寶','魚卵之王'], ans:0, exp:'烏魚子被譽為「海底人蔘」，是海中極品御用食材。' },
+      { q:'本次培訓的核心目標是什麼？', opts:['學習如何降低進貨成本','成為捍衛頂級品質的品鑑大師','了解烏魚子的料理方法','掌握同業競品資訊'], ans:1, exp:'培訓目標是賦予銷售員專家眼光與話術，成為捍衛頂級品質的品鑑大師。' },
+      { q:'市場上最常見的問題是什麼？', opts:['貨源不穩定','價格波動過大','以次充好、魚目混珠的劣質品','消費者對烏魚子不熟悉'], ans:2, exp:'市場上充斥著以次充好、魚目混珠的劣質品，這正是為何品鑑能力如此重要。' },
+      { q:'海烏品牌傳承了多少年？', opts:['30 年','45 年','60 年','80 年'], ans:2, exp:'海烏擁有 60 年的傳統手工經驗與國寶級工藝傳承。' },
+    ]
+  },
+  {
+    id:1, tag:'Chapter 01', title:'氣候變遷下的極致珍稀',
+    content: `
+      <div class="info-card fade-in">
+        <h3>🌡️ 為什麼頂級烏魚子越來越貴？</h3>
+        <p>受<strong>全球暖化、氣候變遷與過度捕撈</strong>影響，野生母烏魚的比例急遽下降。</p>
+      </div>
+      <div class="two-col fade-in">
+        <div class="info-card">
+          <h3>🐟 野生母魚比例變化</h3>
+          <ul>
+            <li>過去天然配比：<strong>7公3母</strong>（母魚 30%）</li>
+            <li>現在天然配比：<strong>9公1母</strong>（母魚僅剩 10%）</li>
+          </ul>
+          <div class="warn-box">⚠️ 野生母烏魚比例已急劇銳減至 10%，巨型魚卵瀕危！</div>
+        </div>
+        <div class="info-card">
+          <h3>⚖️ 重量與稀缺性</h3>
+          <ul>
+            <li>2 年 → 150g（市場主流）</li>
+            <li>3 年 → 190g</li>
+            <li>4 年 → 260g</li>
+            <li>5 年 → 335g</li>
+            <li>6 年以上 → 500g+（最稀有極品）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box fade-in">💡 <strong>關鍵知識：</strong>烏魚子的價格<strong>並非依大小呈等比換算</strong>，越大的烏魚子呈「指數型」稀少，價格成長幅度遠超比例。</div>
+    `,
+    quiz: [
+      { q:'現在野生母烏魚的天然配比大約是多少？', opts:['7公3母','5公5母','9公1母','8公2母'], ans:2, exp:'受全球暖化、氣候變遷與過度捕撈影響，現在天然配比已從過去的7公3母，急劇變為9公1母。' },
+      { q:'6年以上的頂級烏魚子重量約為多少？', opts:['260g以上','335g以上','500g以上','150g以上'], ans:2, exp:'6年以上的野生烏魚子重量在500g以上，是最稀有、最珍貴的極品。' },
+      { q:'烏魚子的價格特性為何？', opts:['依大小等比換算','隨季節大幅波動','越大呈「指數型」稀少，價格非線性成長','主要由產地決定'], ans:2, exp:'烏魚子的價格並非依大小呈等比換算，越大的烏魚子呈「指數型」稀少，價格成長幅度遠超比例。' },
+      { q:'市場上最常見的烏魚子重量約為？', opts:['500g（6年以上）','335g（5年）','150g（2年）','260g（4年）'], ans:2, exp:'2年的烏魚子約150g，是目前市場的主流規格，來不及長大就被捕撈。' },
+    ]
+  },
+  {
+    id:2, tag:'Chapter 02', title:'產地迷思破解',
+    content: `
+      <div class="two-col fade-in">
+        <div class="info-card">
+          <h3>🗺️ 大陸野生 vs. 台灣野生</h3>
+          <ul>
+            <li><strong>真相：</strong>完全是同一品種的寒帶魚。有洋流的地方就有烏魚。</li>
+            <li><strong>差異：</strong>大陸漁民先攔截，此時魚卵尚未成熟；成功抵達台灣海峽時，魚卵已達最完美的飽滿狀態。</li>
+            <li><strong>產量：</strong>台灣海峽的野生捕獲量極少，若宣稱可大量供應通常不實。</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h3>🌍 全球進口版圖</h3>
+          <p>台灣七成仰賴進口：</p>
+          <div class="tag-row">
+            <span class="tag">9–10月：澳洲</span>
+            <span class="tag">10–11月：巴西</span>
+            <span class="tag">12–1月：美國</span>
+          </div>
+          <div class="warn-box">⛔ 唯一不可使用的是<strong>西非子</strong>與<strong>日本子</strong>。</div>
+        </div>
+      </div>
+      <div class="highlight-box fade-in">💡 <strong>銷售心法：</strong>「進口」只是海域不同，頂級老饕吃的是「製作工法技術」，口感無差異。不要主動說「進口」或「養殖」，應說「台灣烏魚子」或「野生烏魚子」。</div>
+    `,
+    quiz: [
+      { q:'大陸野生烏魚子和台灣野生烏魚子本質上有何不同？', opts:['品種完全不同','大陸的品質較差','同一品種，差別在於捕獲時魚卵的成熟度','台灣的產量較少所以較貴'], ans:2, exp:'兩者是完全相同品種的寒帶魚，差別在於大陸漁民先攔截時魚卵尚未成熟，抵達台灣海峽的魚卵才達到最完美飽滿狀態。' },
+      { q:'台灣烏魚子大約有多少比例仰賴進口？', opts:['三成','五成','七成','九成'], ans:2, exp:'台灣七成的烏魚子仰賴進口，主要來自澳洲、巴西、美國。' },
+      { q:'以下哪個產地的烏魚子是不可使用的？', opts:['澳洲','巴西','西非','美國'], ans:2, exp:'唯一不可使用的是西非子與日本子，其餘澳洲、巴西、美國等產地均可接受。' },
+      { q:'當顧客詢問產地時，最佳的銷售話術是？', opts:['坦誠告知「這是進口的」','強調「這是養殖的，品質穩定」','說「這是台灣烏魚子」或「這是野生烏魚子」','避開話題，轉移顧客注意力'], ans:2, exp:'應說「這是台灣烏魚子」或「這是野生烏魚子」，並說明進口野生只是海域不同，吃的是工法與技術，口感與台灣野生無異。' },
+    ]
+  },
+  {
+    id:3, tag:'Chapter 03 · 大師之眼（一）', title:'讀懂透光烏金的「顏色密碼」',
+    content: `
+      <div class="info-card fade-in">
+        <h3>🎨 淺色系 — 尚未成熟（3–5 個月）</h3>
+        <div class="swatch-row">
+          <div class="swatch"><div class="swatch-box" style="background:#F5D04A;"></div><div class="swatch-name">淡黃</div></div>
+          <div class="swatch"><div class="swatch-box" style="background:#E8861A;"></div><div class="swatch-name">橘</div></div>
+          <div class="swatch"><div class="swatch-box" style="background:#E8735A;"></div><div class="swatch-name">淡橘紅</div></div>
+        </div>
+        <p>特性：顏色漂亮討喜，味道較淡。</p>
+        <div class="highlight-box">🎁 銷售建議：非常適合送禮</div>
+      </div>
+      <div class="info-card fade-in">
+        <h3>🎨 深色系 — 完全成熟</h3>
+        <div class="swatch-row">
+          <div class="swatch"><div class="swatch-box" style="background:#C9950A;"></div><div class="swatch-name">暗黃</div></div>
+          <div class="swatch"><div class="swatch-box" style="background:#B85A08;"></div><div class="swatch-name">深橘</div></div>
+          <div class="swatch"><div class="swatch-box" style="background:#8B3A15;"></div><div class="swatch-name">暗橘紅（暗但不黑）</div></div>
+        </div>
+        <p>特性：口感極致濃郁，油脂豐厚。</p>
+        <div class="highlight-box">🍽️ 銷售建議：適合老饕自己享用</div>
+      </div>
+      <div class="info-card fade-in">
+        <h3>📌 環境變數</h3>
+        <ul>
+          <li><strong>季節影響：</strong>夏天日照強，製作顏色偏深；冬天陽光弱，顏色較淡。</li>
+          <li><strong>時間影響：</strong>常溫與冷藏放置越久，顏色會自然變暗（與口感無關）。</li>
+          <li><strong>門市守則：</strong>必須「先進先出」。若不立即食用，務必放冷凍保存。</li>
+        </ul>
+      </div>
+    `,
+    quiz: [
+      { q:'顏色淺（淡黃、橘色）的烏魚子，最適合推薦給哪類顧客？', opts:['自己享用的老饕','送禮用途的顧客','第一次購買的新顧客','大量採購的企業客戶'], ans:1, exp:'淺色系烏魚子顏色漂亮討喜，非常適合送禮。深色系口感濃郁油脂豐厚，更適合老饕自己享用。' },
+      { q:'烏魚子在冷藏後顏色變暗，代表什麼？', opts:['品質已經劣化，不可食用','魚油已經流失','是自然透光現象，完全不影響口感','需要立刻退換貨'], ans:2, exp:'常溫與冷藏放置越久，顏色會自然變暗，這是正常的透光現象，與口感完全無關。' },
+      { q:'以下哪個顏色屬於「完全成熟」深色系的烏魚子？', opts:['淡黃','橘','淡橘紅','深橘'], ans:3, exp:'深色系（暗黃、深橘、暗橘紅）代表完全成熟，口感極致濃郁，油脂豐厚。淡黃、橘、淡橘紅屬於淺色系，尚未完全成熟。' },
+      { q:'門市保存烏魚子的正確原則是？', opts:['後進先出，新品優先銷售','先進先出，若不立即食用務必冷凍','常溫保存即可，勿冷凍','冷藏三個月後需丟棄'], ans:1, exp:'門市守則：必須「先進先出」。若不立即食用，務必放冷凍保存，可保存1年以上。' },
+    ]
+  },
+  {
+    id:4, tag:'Chapter 04 · 大師之眼（二）', title:'完美口感的「黃金含水率」',
+    content: `
+      <div class="moisture-row fade-in">
+        <div class="m-card bad">
+          <span class="m-label bad">❌ 劣質</span>
+          <div class="m-name">太乾「全乾」</div>
+          <div class="m-desc">油脂少、太硬、太柴。切片時容易閃開、碎裂。<br><br><strong>原因：</strong>壓得太乾，失去天然魚油的潤澤。</div>
+        </div>
+        <div class="m-card good">
+          <span class="m-label good">✅ 海烏標準</span>
+          <div class="m-name">「Q軟黏牙」</div>
+          <div class="m-desc">恰到好處的軟硬度，切面完整透光。富含油脂，彈性極佳。<br><br>完全取決於國寶級師傅的<strong>「經驗與手感」</strong>。</div>
+        </div>
+        <div class="m-card bad">
+          <span class="m-label bad">❌ 劣質</span>
+          <div class="m-name">太濕「糖心蛋」</div>
+          <div class="m-desc">軟趴趴、看似漂亮但不熟。<br><br><strong>風險：</strong>水分過高極易滋生細菌，食用有腹瀉風險，口感噁心。</div>
+        </div>
+      </div>
+      <div class="highlight-box fade-in">💡 海烏的「Q軟黏牙」標準完全取決於國寶級師傅的「<strong>經驗與手感</strong>」，是無法用機器複製的品質核心。</div>
+      <div class="warn-box fade-in">⚠️ 「糖心蛋」（太濕）是市場新興劣質品，看起來漂亮但食用風險極高，需特別警惕！</div>
+    `,
+    quiz: [
+      { q:'海烏標準的烏魚子口感應該是？', opts:['極乾硬、切開不碎','Q軟黏牙，切面完整透光','軟趴趴、含水量高','入口即化、完全不黏'], ans:1, exp:'海烏標準是「Q軟黏牙」，恰到好處的軟硬度，切面完整透光，富含油脂，彈性極佳。' },
+      { q:'「糖心蛋」型的烏魚子最大的風險是什麼？', opts:['口感太淡，顧客不喜歡','顏色太淺，不好看','水分過高容易滋生細菌，有腹瀉風險','油脂太少，不夠香'], ans:2, exp:'太濕的「糖心蛋」水分過高，極易滋生細菌，食用有腹瀉風險，口感也令人不適。這是市場新興劣質品。' },
+      { q:'「全乾」型的烏魚子有何特徵？', opts:['透光感佳，口感極好','切片容易，形狀完整','油脂少、太硬，切片容易碎裂','適合老饕喜歡乾燥口感'], ans:2, exp:'全乾型的烏魚子油脂少、太硬、太柴，切片時容易閃開、碎裂，是因為壓得太乾失去天然魚油的潤澤。' },
+      { q:'決定烏魚子含水率是否達到完美標準的關鍵因素是？', opts:['進口產地的不同','製作機器的精度','國寶級師傅的「經驗與手感」','鹽漬的時間長短'], ans:2, exp:'完美的含水率完全取決於國寶級師傅的「經驗與手感」，是無法用機器複製的品質核心。' },
+    ]
+  },
+  {
+    id:5, tag:'Chapter 05', title:'海烏製程解密：7至10天的等待',
+    content: `
+      <div class="info-card fade-in">
+        <h3>📋 11 道製作工序</h3>
+        <div class="steps-flow">
+          <span class="step-pill">🥚 採卵</span><span class="step-arrow">→</span>
+          <span class="step-pill">🧵 綁線</span><span class="step-arrow">→</span>
+          <span class="step-pill">🚿 清洗</span><span class="step-arrow">→</span>
+          <span class="step-pill">🩸 刮血</span><span class="step-arrow">→</span>
+          <span class="step-pill">🧂 鹽漬</span><span class="step-arrow">→</span>
+          <span class="step-pill">💧 脫鹽</span><span class="step-arrow">→</span>
+          <span class="step-pill">⚖️ 壓平</span><span class="step-arrow">→</span>
+          <span class="step-pill">✋ 整形</span><span class="step-arrow">→</span>
+          <span class="step-pill">☀️ 乾燥</span><span class="step-arrow">→</span>
+          <span class="step-pill">✨ 再整形</span><span class="step-arrow">→</span>
+          <span class="step-pill">📦 成品</span>
+        </div>
+      </div>
+      <div class="two-col fade-in">
+        <div class="info-card">
+          <h3>☀️ 日間乾燥定型</h3>
+          <ul>
+            <li>前兩天室外日曬脫水、整形定型</li>
+            <li>第三天起轉入室內機器低溫乾燥</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h3>🌙 夜間重壓脫水</h3>
+          <ul>
+            <li>依據預計時間判斷重量</li>
+            <li>初期輕壓：定型並防止烏魚子破裂</li>
+            <li>後期加重：徹底脫水定型</li>
+            <li>循環 7–10 天完成</li>
+          </ul>
+        </div>
+      </div>
+      <div class="three-col fade-in">
+        <div class="info-card">
+          <h3>🦠 業界唯一雙重殺菌</h3>
+          <p>率先導入室內機器乾燥，並進行「<strong>2 道紫外線殺菌</strong>」，徹底解決傳統戶外曝曬的衛生疑慮。</p>
+        </div>
+        <div class="info-card">
+          <h3>🥗 健康低鹽訴求</h3>
+          <p>迎合現代健康趨勢，所有產品均以<strong>低鹽</strong>製成，極度考驗發酵與醃製的精準度。</p>
+        </div>
+        <div class="info-card">
+          <h3>🤲 全程國寶級手工</h3>
+          <p>每一片皆由國寶級老師傅嚴格篩選，<strong>純手工雕琢</strong>，確保最佳適口性。</p>
+        </div>
+      </div>
+    `,
+    quiz: [
+      { q:'海烏烏魚子的製作過程大約需要多少天？', opts:['2–3 天','5–6 天','7–10 天','14–20 天'], ans:2, exp:'海烏烏魚子的製作採日夜循環工法，完整的製作周期需要 7 至 10 天。' },
+      { q:'海烏在衛生方面有何業界首創的特點？', opts:['使用進口鹽製作','冷凍急速殺菌','業界唯一雙重殺菌（2道紫外線殺菌）','無菌真空包裝技術'], ans:2, exp:'海烏率先導入室內機器低溫乾燥，並進行「2道紫外線殺菌」，是業界唯一的雙重殺菌製程。' },
+      { q:'夜間重壓脫水時，初期與後期的壓力有何不同？', opts:['一開始就用最重的壓力，之後逐漸減輕','初期輕壓定型防止破裂，後期加重徹底脫水','全程使用相同重量，確保均勻','不需要施壓，靠重力自然成形'], ans:1, exp:'夜間重壓分兩階段：初期輕壓，目的是定型並防止烏魚子破裂；後期加重，徹底脫水定型。' },
+      { q:'現代海烏為何強調低鹽製作？', opts:['低鹽可以延長保存期限','迎合現代健康趨勢，但極度考驗發酵與醃製的精準度','低鹽可以降低成本','低鹽是法規要求'], ans:1, exp:'海烏迎合現代健康趨勢採低鹽製作，但這極度考驗師傅的發酵與醃製精準度，掌控不佳就會發酵損壞。' },
+    ]
+  },
+  {
+    id:6, tag:'Chapter 06', title:'市場真相：觀光市場避坑指南',
+    content: `
+      <div class="info-card fade-in">
+        <table class="ctable">
+          <thead>
+            <tr>
+              <th></th>
+              <th class="g">海烏頂級烏金（基準）</th>
+              <th class="r">血子</th>
+              <th class="r">濕油子</th>
+              <th class="r">乾油子</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>外觀</td>
+              <td>色澤透亮，左右均稱</td>
+              <td>呈現深黑色</td>
+              <td>異常軟爛，表面滲出大量油脂</td>
+              <td>表皮極皺（像老人的皮），通常無真空包裝</td>
+            </tr>
+            <tr>
+              <td>口感</td>
+              <td>Q彈黏牙，切面完整</td>
+              <td>極度死鹹，腥味極重</td>
+              <td>像濕紙巾，擦拭後仍不斷出油</td>
+              <td>極乾極硬，輕壓即斷，像酥餅散開</td>
+            </tr>
+            <tr>
+              <td>市場騙局</td>
+              <td>60 年工藝保證</td>
+              <td><span class="scam-text">⚠️ 宣稱是極其稀有高檔品種</span><span class="true-text">✓ 真相：烏魚血流入魚卵的瑕疵品</span></td>
+              <td><span class="scam-text">⚠️ 宣稱是豐富魚油</span><span class="true-text">✓ 真相：次級養殖品</span></td>
+              <td><span class="scam-text">⚠️ 傳統市場便宜賣</span><span class="true-text">✓ 真相：魚卵完全無油脂</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="warn-box fade-in">⚠️ <strong>千萬別貪小便宜！</strong>這些劣質品常出現在觀光魚市或傳統黃昏市場。購買烏魚子，<strong>品牌信任度是唯一指標</strong>。</div>
+      <div class="info-card fade-in">
+        <h3>💡 便利包一口吃：海烏原創 vs. 市場陷阱</h3>
+        <div class="two-col">
+          <div>
+            <p><strong style="color:var(--green);">✅ 海烏原創</strong></p>
+            <ul>
+              <li>業界「便利包（一口吃）」的先驅（領先市場3年）</li>
+              <li>嚴格篩選上等烏魚子製作，保留完整Q彈口感</li>
+            </ul>
+          </div>
+          <div>
+            <p><strong style="color:var(--red);">❌ 市場陷阱</strong></p>
+            <ul>
+              <li>切成小塊後，消費者完全無法從外觀分辨原卵的劣質狀態</li>
+              <li>大部分業者使用次級品、甚至「血子」製作</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    `,
+    quiz: [
+      { q:'「血子」的真實狀況是什麼？', opts:['稀有高級品種，顏色深黑','烏魚血流入魚卵造成的瑕疵品','深海捕撈的珍稀品種','特殊加工製成的頂級品'], ans:1, exp:'血子的市場話術宣稱是極其稀有高檔品種，但真相是烏魚血流入魚卵的瑕疵品，極度死鹹且腥味極重。' },
+      { q:'「濕油子」表面不斷滲出油脂，賣家宣稱是什麼？', opts:['品質極佳，油脂豐富','已過期需退換','正常現象，表示新鮮','是次級養殖品的特徵'], ans:0, exp:'濕油子的騙局是宣稱表面滲油代表豐富魚油，但真相是次級養殖品，水分過高且軟爛。' },
+      { q:'如何辨別劣質「乾油子」？', opts:['顏色深黑，腥味重','表皮極皺像老人皮，通常無真空包裝，極乾極硬','顏色太淡，缺乏光澤','包裝過度，無法看到產品'], ans:1, exp:'乾油子的特徵是表皮極皺（像老人的皮），通常無真空包裝，極乾極硬，輕壓即斷，切開像酥餅一樣散開。' },
+      { q:'市場上便利包一口吃的品質陷阱是什麼？', opts:['便利包保存期限較短','切成小塊後消費者無法分辨原卵的劣質狀態','便利包的口感不如整條好','便利包的價格偏高'], ans:1, exp:'切成小塊後，消費者完全無法從外觀分辨原卵的劣質狀態。許多業者使用次級品甚至血子製作，又鹹又腥，完全破壞體驗。' },
+    ]
+  },
+  {
+    id:7, tag:'Chapter 07–08', title:'保存法則 × 銷售實戰話術',
+    content: `
+      <div class="info-card fade-in">
+        <h3>❄️ 保存期限指南</h3>
+        <div class="shelf-row"><span class="shelf-icon">🏠</span><div><strong>常溫</strong><div class="shelf-dur">頂多 2 禮拜</div></div></div>
+        <div class="shelf-row"><span class="shelf-icon">🧊</span><div><strong>冷藏</strong><div class="shelf-dur">180 天（顏色漸暗為自然現象，不影響口感）</div></div></div>
+        <div class="shelf-row rec"><span class="shelf-icon">❄️</span><div><strong style="color:var(--gold);">冷凍（強烈建議）</strong><div class="shelf-dur">1 年以上沒問題。長期不食用務必冷凍保存。</div></div></div>
+        <br>
+        <p>透明真空袋讓消費者能「<strong>辨識顏色</strong>」，若使用鋁箔袋看不見品質將導致滯銷。</p>
+      </div>
+      <div class="info-card fade-in">
+        <h3>💬 銷售實戰話術</h3>
+        <div class="talk-pair">
+          <div class="t-card avoid"><div class="t-label">❌ 避免說</div><p>「這是養殖的」或「這是進口的」</p></div>
+          <div class="t-card use"><div class="t-label">✅ 應該說</div><p>「這是台灣烏魚子」或「這是野生烏魚子」<br><small style="color:var(--gold-mid);">進口野生只是海域不同，吃的是工法技術。</small></p></div>
+        </div>
+        <div class="talk-pair">
+          <div class="t-card avoid"><div class="t-label">❌ 避免說</div><p>「因為比較大片所以比較貴」</p></div>
+          <div class="t-card use"><div class="t-label">✅ 應該說</div><p>「這片500克的烏金，代表野生烏魚存活了6年以上。巨型尺寸是極度稀有的珍品，價格呈指數型成長。」</p></div>
+        </div>
+        <div class="talk-pair">
+          <div class="t-card avoid"><div class="t-label">❌ 顧客說顏色變深</div><p>慌張道歉或提出退換</p></div>
+          <div class="t-card use"><div class="t-label">✅ 應該說</div><p>「深色代表魚卵完全成熟，油脂最豐厚，口感最濃郁，是老饕的最愛。放冷藏久了稍微變暗是自然現象，完全不影響頂級口感。」</p></div>
+        </div>
+      </div>
+    `,
+    quiz: [
+      { q:'烏魚子冷藏可以保存多久？', opts:['30 天','90 天','180 天','365 天'], ans:2, exp:'烏魚子冷藏可保存 180 天。需注意顏色會漸漸變暗，但這是自然透光現象，完全不影響口感。' },
+      { q:'顧客說「這個顏色很深，是不是壞了？」最佳回應是？', opts:['立即道歉並提供退換','解釋深色代表魚卵完全成熟，油脂最豐厚，是老饕的最愛','說明可能是太舊了，給予折扣','轉移話題，介紹其他產品'], ans:1, exp:'應說「深色代表魚卵完全成熟，油脂最豐厚，口感最濃郁，是老饕的最愛。放冷藏久了稍微變暗是自然現象，完全不影響頂級口感。」' },
+      { q:'為何使用透明真空袋而非鋁箔袋包裝？', opts:['透明袋成本較低','消費者首重辨識顏色，鋁箔袋看不見品質會導致滯銷','透明袋保鮮效果更好','鋁箔袋容易生鏽'], ans:1, exp:'消費者首重「辨識顏色」。若使用鋁箔袋避光，看不見品質將導致滯銷。透明袋能讓顧客直接看到產品品質。' },
+      { q:'顧客詢問「這麼貴是因為大片嗎？」最佳的專業回應是？', opts:['是的，大片所以成本高','因為是進口的，運費貴','這片500克代表野生烏魚存活超過6年，巨型尺寸極度稀有，價格呈指數型成長','大片的味道比較好，物有所值'], ans:2, exp:'應強調：「這片500克的烏金，代表野生烏魚存活了6年以上。巨型尺寸是極度稀有的珍品，價格呈現指數型成長。」—而非簡單說「大所以貴」。' },
+    ]
   }
-}
-function lockAdmin(){
-  isAdminUnlocked=false;
-  document.getElementById('upload-box').style.display='none';
-  document.getElementById('upload-locked').style.display='block';
-  const btn=document.getElementById('admin-btn');
-  btn.classList.remove('unlocked');
-  document.getElementById('admin-lock-icon').textContent='🔒';
-  document.getElementById('admin-lock-text').textContent='管理員';
-}
-document.getElementById('pwd-modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+];
 
-// ── UTILS ──
-function pct(v){ return v==null?'—':(v*100).toFixed(1)+'%'; }
-function num(v){ return v==null?'—':Number(v).toLocaleString(); }
-function nowStr(){
-  const d=new Date();
-  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-}
-
-// ── FILE HANDLING ──
-function handleDrop(e){
-  e.preventDefault();
-  document.getElementById('upload-box').classList.remove('drag');
-  const f=e.dataTransfer.files[0];
-  if(f) handleFile(f);
-}
-
-function handleFile(file){
-  if(!file) return;
-  document.getElementById('loading-bar').classList.add('show');
-  const reader=new FileReader();
-  reader.onload=async e=>{
-    try{
-      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
-      const payload=parseWorkbook(wb);
-      // 存到 Firebase
-      await window.saveToFirebase(payload);
-      // 更新上傳區外觀
-      const box=document.getElementById('upload-box');
-      box.classList.add('file-loaded');
-      document.getElementById('upload-icon').textContent='✅';
-      document.getElementById('upload-title').textContent='☁️ 已上傳至雲端：'+file.name;
-      document.getElementById('upload-sub').textContent='所有人的頁面已自動更新，點擊可重新上傳';
-      document.getElementById('loading-bar').classList.remove('show');
-    }catch(err){
-      document.getElementById('loading-bar').classList.remove('show');
-      alert('上傳失敗：'+err.message+'\n請確認 GAS_URL 是否填入正確，或檔案格式是否正確');
-    }
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-// ── PARSE WORKBOOK → 回傳 payload 物件 ──
-function parseWorkbook(wb){
-  const wsName=Object.keys(wb.Sheets)[0]; const ws=wb.Sheets[wsName];
-  
-  const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-
-  // 日期標籤
-  let dateLabel='';
-  if(raw[12]&&raw[12][1]) dateLabel=String(raw[12][1]);
-
-  // 部門
-  const d3row=raw[2], d4row=raw[3];
-  const depts={
-    d3:{cumul_pct:d3row[3]>1?d3row[3]/100:d3row[3],daily_pct:d3row[6]>1?d3row[6]/100:d3row[6]},
-    d4:{cumul_pct:d4row[3]>1?d4row[3]/100:d4row[3],daily_pct:d4row[6]>1?d4row[6]/100:d4row[6]}
-  };
-
-  // 組別
-  const groups=[];
-  for(let i=0;i<raw.length;i++){
-    const r=raw[i];
-    if(!r||!r[0]) continue;
-    const cell=String(r[0]);
-    if(/^ER\d{3}-/.test(cell)){
-      const isDept4=cell.includes('營業四部');
-      const dashIdx=cell.indexOf('-');
-      let fullName=dashIdx>=0?cell.slice(dashIdx+1):cell;
-      fullName=fullName.replace('營業三部','').replace('營業四部','').trim();
-      groups.push({id:cell.split('-')[0],name:fullName,dept:isDept4?4:3,
-        cumul_actual:r[1],cumul_rich:r[2],cumul_pct:r[3],
-        daily_actual:r[4],daily_rich:r[5],daily_pct:r[6]});
-    }
-  }
-
-  // 個人
-  const wsP=wb.Sheets['個人佔比'];
-  const individuals=[];
-  if(wsP){
-    const rows=XLSX.utils.sheet_to_json(wsP,{header:1,defval:null});
-    for(let i=1;i<rows.length;i++){
-      const r=rows[i];
-      if(!r||!r[0]||!r[2]) continue;
-      const groupCell=String(r[0]);
-      const emp=r[1]!=null?String(r[1]):'';
-      const name=String(r[2]);
-      const actual=r[3]||0;
-      const rich=r[4]||0;
-      const pctVal=r[6]!=null?r[6]:(actual>0?rich/actual:0);
-      const dept=groupCell.includes('四部')?4:3;
-      const dashIdx=groupCell.indexOf('-');
-      let gname=dashIdx>=0?groupCell.slice(dashIdx+1):groupCell;
-      gname=gname.replace('營業三部','').replace('營業四部','').trim();
-      individuals.push({emp,name,gname,dept,actual,rich,pct:pctVal});
-    }
-  }
-
-  // 區域競賽
-  const wsR=wb.Sheets['區域競賽'];
-  const regions=[];
-  if(wsR){
-    const raws=XLSX.utils.sheet_to_json(wsR,{header:1,defval:null});
-    let currentTeam='', currentDept=3;
-    for(let i=0;i<raws.length;i++){
-      const r=raws[i];
-      if(!r) continue;
-      if(r[1]==='營業三部'){currentDept=3;continue;}
-      if(r[1]==='營業四部'){currentDept=4;continue;}
-      if(r[0]&&String(r[0]).trim()!=='各區理級團隊') currentTeam=String(r[0]).trim();
-      if(r[1]==='合計'&&currentTeam){
-        regions.push({team:currentTeam,dept:currentDept,actual:r[2]||0,rich:r[3]||0,pct:r[4]||0});
-        currentTeam='';
-      }
-    }
-  }
-
-  return { depts, groups, individuals, regions, dateLabel, uploadedAt: nowStr() };
-}
-
-// ── RENDER ALL（從 Firebase 收到資料後呼叫）──
-window.renderAll = function(data){
-  if(data.depts) renderDeptCards(data.depts);
-  if(data.groups){
-    renderGroupTable('tbl-cumul',data.groups,'cumul');
-    renderGroupTable('tbl-daily',data.groups,'daily');
-  }
-  if(data.individuals){
-    fullIndividuals=[...data.individuals].sort((a,b)=>b.pct-a.pct);
-    renderPersonal(data.individuals);
-    renderFullTable(fullIndividuals);
-  }
-  if(data.regions) renderRegionTable(data.regions);
-  document.getElementById('loading-overlay').classList.remove('show');
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let state = {
+  started: false,
+  currentChapter: 0,
+  mode: 'content',
+  quizIndex: 0,
+  quizAnswered: false,
+  scores: {},
+  userName: '',
+  gasUrl: 'https://script.google.com/macros/s/AKfycbyuGCZ-TF_b-p4k-l5B-hXX5hyO_5EtGCUtKTeligg7PqXKn6eeFfCRzrMpgoLxtrM8/exec',
 };
 
-// ── DEPT CARDS ──
-function renderDeptCards(depts){
-  ['d3','d4'].forEach(k=>{
-    const p=depts[k].cumul_pct||0;
-    const dp=depts[k].daily_pct||0;
-    document.getElementById(k+'-pct').textContent=pct(p);
-    document.getElementById(k+'-sub').textContent='當日占比 '+pct(dp);
-    setTimeout(()=>{ document.getElementById(k+'-bar').style.width=Math.min(p*100,100)+'%'; },80);
-    const hit=p>=TARGET;
-    document.getElementById(k+'-dot').className='dot '+(hit?'dot-g':'dot-r');
-    document.getElementById(k+'-txt').textContent=hit?'✓ 已達目標 50%':'目標 ≧ 50%，差 '+pct(TARGET-p);
+function loadState() {
+  try {
+    const s = localStorage.getItem('haiwu_state');
+    if (s) state = Object.assign(state, JSON.parse(s));
+  } catch(e) {}
+}
+function saveState() {
+  try { localStorage.setItem('haiwu_state', JSON.stringify(state)); } catch(e) {}
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  buildNav();
+  updateScoreRing();
+  if (state.started) {
+    document.getElementById('welcome-screen').style.display = 'none';
+    showChapter(state.currentChapter, state.mode);
+  } else {
+    document.getElementById('welcome-screen').style.display = 'flex';
+  }
+  // fade in welcome
+  setTimeout(() => document.querySelector('.welcome-inner')?.classList.add('visible'), 100);
+  // scroll progress
+  window.addEventListener('scroll', () => {
+    const el = document.getElementById('content-area');
+    if (!el || el.style.display === 'none') return;
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    document.getElementById('top-bar-fill').style.width = (h > 0 ? Math.min(100, window.scrollY / h * 100) : 0) + '%';
+  });
+});
+
+// ═══════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════
+function buildNav() {
+  const nav = document.getElementById('chapter-nav');
+  nav.innerHTML = '';
+  CHAPTERS.forEach((ch, i) => {
+    const done = state.scores[i] !== undefined;
+    const active = state.started && state.currentChapter === i;
+    const div = document.createElement('div');
+    div.className = `nav-item${active?' active':''}${done?' done':''}`;
+    div.innerHTML = `<div class="nav-num">${i+1}</div><span>${ch.title}</span><span class="nav-status">${done ? '✓' : ''}</span>`;
+    div.onclick = () => { if (state.started) { goToChapter(i); closeSidebar(); } };
+    nav.appendChild(div);
   });
 }
 
-// ── REGION TABLE ──
-function renderRegionTable(regions){
-  const el=document.getElementById('tbl-region');
-  if(!regions||!regions.length){
-    el.innerHTML='<div class="empty"><div class="empty-icon">🗺️</div>找不到區域競賽資料</div>';
+function updateNav() {
+  buildNav();
+  const el = document.getElementById('sidebar-username');
+  if (el && state.userName) el.textContent = '👤 ' + state.userName;
+}
+
+// ═══════════════════════════════════════
+// SCORE RING
+// ═══════════════════════════════════════
+function updateScoreRing() {
+  const total = CHAPTERS.length;
+  const done = Object.keys(state.scores).length;
+  const pct = Math.round(done / total * 100);
+  const fill = document.getElementById('ring-fill');
+  const circumference = 2 * Math.PI * 17;
+  fill.style.strokeDasharray = `${circumference}`;
+  fill.style.strokeDashoffset = `${circumference * (1 - pct/100)}`;
+  document.getElementById('ring-pct').textContent = pct + '%';
+  // calc average score
+  const scores = Object.values(state.scores);
+  if (scores.length) {
+    const avg = scores.reduce((a,b) => a + b.correct / b.total, 0) / scores.length;
+    document.getElementById('score-display').textContent = `答題正確率 ${Math.round(avg*100)}%`;
+    document.getElementById('score-sub').textContent = `已完成 ${done}/${total} 章節`;
+  } else {
+    document.getElementById('score-display').textContent = '整體進度';
+    document.getElementById('score-sub').textContent = state.started ? '學習中...' : '尚未開始';
+  }
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function startTraining() {
+  const nameInput = document.getElementById('user-name-input');
+  const name = nameInput ? nameInput.value.trim() : '';
+  if (!name) {
+    if (nameInput) { nameInput.style.borderColor='var(--red)'; nameInput.placeholder='請先輸入姓名！'; nameInput.focus(); }
     return;
   }
-  const sorted=[...regions].sort((a,b)=>b.pct-a.pct);
-  let h=`<div class="group-row hdr">
-    <div class="gr-rank">#</div>
-    <div class="gr-name hdr-txt">理級團隊</div>
-    <div class="gr-actual hdr-txt">實際</div>
-    <div class="gr-rich hdr-txt">iRich</div>
-    <div class="gr-pct hdr-txt">佔比</div>
-  </div>`;
-  sorted.forEach((g,i)=>{
-    const rank=i+1;
-    const hit=g.pct>=TARGET;
-    const icon=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
-    const badge=hit?'<span class="badge badge-ok">達標</span>':'<span class="badge badge-no">未達</span>';
-    const dc=g.dept===3?'var(--gold-light)':'#80C0FF';
-    const dl=g.dept===3?'三部':'四部';
-    h+=`<div class="group-row">
-      <div class="gr-rank" style="font-size:${rank<=3?'16px':'11px'}">${icon}</div>
-      <div class="gr-name"><span class="dept-tag" style="color:${dc}">${dl}</span>${g.team}${badge}</div>
-      <div class="gr-actual">${num(g.actual)}</div>
-      <div class="gr-rich">${num(g.rich)}</div>
-      <div class="gr-pct ${hit?'c-green':'c-red'}">${pct(g.pct)}</div>
-    </div>`;
-  });
-  el.innerHTML=h;
+  state.userName = name;
+  state.gasUrl = 'https://script.google.com/macros/s/AKfycbyuGCZ-TF_b-p4k-l5B-hXX5hyO_5EtGCUtKTeligg7PqXKn6eeFfCRzrMpgoLxtrM8/exec';
+  state.started = true;
+  state.currentChapter = 0;
+  state.mode = 'content';
+  saveState();
+  document.getElementById('welcome-screen').style.display = 'none';
+  showChapter(0, 'content');
 }
 
-// ── GROUP TABLE ──
-function renderGroupTable(containerId,groups,mode){
-  const pKey=mode==='cumul'?'cumul_pct':'daily_pct';
-  const aKey=mode==='cumul'?'cumul_actual':'daily_actual';
-  const rKey=mode==='cumul'?'cumul_rich':'daily_rich';
-  const sorted=[...groups].sort((a,b)=>(b[pKey]||0)-(a[pKey]||0));
-  let h=`<div class="group-row hdr">
-    <div class="gr-rank">#</div>
-    <div class="gr-name hdr-txt">組別</div>
-    <div class="gr-actual hdr-txt">實際</div>
-    <div class="gr-rich hdr-txt">iRich</div>
-    <div class="gr-pct hdr-txt">占比</div>
-  </div>`;
-  sorted.forEach((g,i)=>{
-    const rank=i+1;
-    const v=g[pKey]||0;
-    const hit=v>=TARGET;
-    const dc=g.dept===3?'var(--gold-light)':'#80C0FF';
-    const dl=g.dept===3?'三部':'四部';
-    const icon=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
-    const badge=hit?'<span class="badge badge-ok">達標</span>':'<span class="badge badge-no">未達</span>';
-    h+=`<div class="group-row">
-      <div class="gr-rank" style="font-size:${rank<=3?'16px':'11px'}">${icon}</div>
-      <div class="gr-name"><span class="dept-tag" style="color:${dc}">${dl}</span>${g.name}${badge}</div>
-      <div class="gr-actual">${num(g[aKey])}</div>
-      <div class="gr-rich">${num(g[rKey])}</div>
-      <div class="gr-pct ${hit?'c-green':'c-red'}">${pct(v)}</div>
-    </div>`;
-  });
-  document.getElementById(containerId).innerHTML=h;
+function goToChapter(i) {
+  state.currentChapter = i;
+  state.mode = 'content';
+  state.quizIndex = 0;
+  state.quizAnswered = false;
+  saveState();
+  showChapter(i, 'content');
 }
 
-// ── PERSONAL RANKING ──
-function renderPersonal(individuals){
-  const eligible=individuals.filter(p=>p.pct>=TARGET).sort((a,b)=>b.pct-a.pct||b.rich-a.rich).slice(0,10);
-  if(eligible.length===0){
-    document.getElementById('personal-rank').innerHTML='<div class="empty"><div class="empty-icon">🏅</div>暫無符合條件人員（佔比≧50%）</div>';
-    return;
+function showChapter(chIdx, mode) {
+  document.getElementById('content-area').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'none';
+  document.getElementById('result-area').style.display = 'none';
+  document.getElementById('final-screen').style.display = 'none';
+  updateNav();
+  if (mode === 'content') {
+    renderContent(chIdx);
+  } else if (mode === 'quiz') {
+    renderQuiz(chIdx, state.quizIndex || 0);
+  } else if (mode === 'result') {
+    renderResult(chIdx);
   }
-  let h='';
-  eligible.forEach((p,i)=>{
-    const r=i+1;
-    const cls=r===1?'r1':r===2?'r2':r===3?'r3':'';
-    const nc=r===1?'g1':r===2?'g2':r===3?'g3':'';
-    const icon=r<=3?['🥇','🥈','🥉'][r-1]:r;
-    const dc=p.dept===3?'var(--gold-light)':'#80C0FF';
-    const dl=p.dept===3?'營業三部':'營業四部';
-    h+=`<div class="rank-item ${cls}">
-      <div class="rn ${nc}">${icon}</div>
-      <div class="ri">
-        <div class="ri-name">${p.name}</div>
-        <div class="ri-group"><span style="color:${dc}">${dl}</span>｜${p.gname}</div>
-        <div class="ri-bar"><div class="ri-fill" style="width:${Math.min(p.pct*100,100)}%"></div><div class="ri-target"></div></div>
-      </div>
-      <div class="rr">
-        <div class="rr-pct">${pct(p.pct)}</div>
-        <div class="rr-detail">${p.rich} / ${p.actual} 筆</div>
-      </div>
-    </div>`;
-  });
-  document.getElementById('personal-rank').innerHTML=h;
+  window.scrollTo(0,0);
 }
 
-// ── FULL TABLE ──
-function renderFullTable(data){
-  if(!data.length){
-    document.getElementById('tbl-full').innerHTML='<div class="empty"><div class="empty-icon">👥</div>無資料</div>';
-    return;
+// ═══════════════════════════════════════
+// CONTENT
+// ═══════════════════════════════════════
+function renderContent(chIdx) {
+  const ch = CHAPTERS[chIdx];
+  const area = document.getElementById('content-area');
+  area.style.display = 'block';
+  area.innerHTML = `
+    <div class="chapter-header fade-in">
+      <div class="ch-tag">${ch.tag}</div>
+      <h1 class="ch-title">${ch.title}</h1>
+      <div class="ch-divider"></div>
+    </div>
+    ${ch.content}
+    <div style="margin-top:3rem;text-align:center;" class="fade-in">
+      <button class="start-btn" onclick="startQuiz(${chIdx})">進入測驗 →</button>
+    </div>
+  `;
+  setTimeout(() => area.querySelectorAll('.fade-in').forEach(el => {
+    const obs = new IntersectionObserver(e => { if(e[0].isIntersecting){el.classList.add('visible');obs.disconnect();} },{threshold:0.05});
+    obs.observe(el);
+  }), 50);
+}
+
+// ═══════════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════════
+function startQuiz(chIdx) {
+  state.mode = 'quiz';
+  state.quizIndex = 0;
+  state.quizAnswered = false;
+  if (!state.scores[chIdx]) state.scores[chIdx] = { correct: 0, total: 0, answers: [] };
+  else { state.scores[chIdx] = { correct: 0, total: 0, answers: [] }; } // reset
+  saveState();
+  showChapter(chIdx, 'quiz');
+}
+
+function renderQuiz(chIdx, qIdx) {
+  const ch = CHAPTERS[chIdx];
+  const q = ch.quiz[qIdx];
+  const total = ch.quiz.length;
+  const area = document.getElementById('quiz-area');
+  area.style.display = 'block';
+  document.getElementById('quiz-ch-title').textContent = ch.title + ' · 測驗';
+  document.getElementById('quiz-progress-text').textContent = `${qIdx+1} / ${total}`;
+  document.getElementById('quiz-bar-fill').style.width = `${(qIdx/total)*100}%`;
+  document.getElementById('q-num').textContent = `第 ${qIdx+1} 題，共 ${total} 題`;
+  document.getElementById('q-text').textContent = q.q;
+  const optDiv = document.getElementById('q-options');
+  optDiv.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = `${['Ａ','Ｂ','Ｃ','Ｄ'][i]}．${o}`;
+    btn.onclick = () => answerQuestion(chIdx, qIdx, i);
+    optDiv.appendChild(btn);
+  });
+  document.getElementById('q-feedback').style.display = 'none';
+  document.getElementById('q-feedback').className = 'feedback-box';
+  document.getElementById('q-next').style.display = 'none';
+  state.quizAnswered = false;
+}
+
+function answerQuestion(chIdx, qIdx, chosen) {
+  if (state.quizAnswered) return;
+  state.quizAnswered = true;
+  const ch = CHAPTERS[chIdx];
+  const q = ch.quiz[qIdx];
+  const correct = chosen === q.ans;
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.ans) b.classList.add('correct');
+    else if (i === chosen && !correct) b.classList.add('wrong');
+  });
+  const fb = document.getElementById('q-feedback');
+  fb.style.display = 'block';
+  fb.className = 'feedback-box ' + (correct ? 'correct' : 'wrong');
+  fb.innerHTML = correct
+    ? `✅ <strong>正確！</strong>${q.exp}`
+    : `❌ <strong>答錯了。</strong>正確答案是「${q.opts[q.ans]}」。<br>${q.exp}`;
+  if (correct) state.scores[chIdx].correct++;
+  state.scores[chIdx].total++;
+  state.scores[chIdx].answers = state.scores[chIdx].answers || [];
+  state.scores[chIdx].answers.push(correct);
+  saveState();
+
+  // If last question, submit chapter result to GAS
+  const isLastQ = qIdx + 1 >= ch.quiz.length;
+  if (isLastQ && state.gasUrl) {
+    const sc = state.scores[chIdx];
+    const payload = {
+      type: 'chapter',
+      name: state.userName || '匿名',
+      chapterId: chIdx,
+      chapterTitle: ch.title,
+      correct: sc.correct,
+      total: sc.total,
+      pct: Math.round(sc.correct / sc.total * 100),
+      timestamp: new Date().toISOString()
+    };
+    fetch(state.gasUrl, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
+    }).catch(() => {});
+
+    // If ALL chapters done, also send final summary
+    const doneCount = Object.keys(state.scores).length;
+    const totalChapters = CHAPTERS.length;
+    // +1 because current chapter was just scored
+    if (doneCount + 1 >= totalChapters) {
+      const allScores = Object.entries(state.scores);
+      // include current chapter score
+      allScores.push([String(chIdx), sc]);
+      const avgPct = Math.round(
+        allScores.reduce((a, [, v]) => a + v.correct / v.total, 0) / allScores.length * 100
+      );
+      const perfect = allScores.filter(([, v]) => v.correct === v.total).length;
+      const chapterSummary = CHAPTERS.map((c, i) => {
+        const s = i === chIdx ? sc : state.scores[i];
+        return s ? `${c.title}:${Math.round(s.correct/s.total*100)}%` : `${c.title}:未完成`;
+      }).join('|');
+      const finalPayload = {
+        type: 'final',
+        name: state.userName || '匿名',
+        avgPct,
+        perfect,
+        totalChapters,
+        chapterSummary,
+        timestamp: new Date().toISOString()
+      };
+      setTimeout(() => {
+        fetch(state.gasUrl, {
+          method: 'POST',
+          body: JSON.stringify(finalPayload),
+          headers: { 'Content-Type': 'application/json' }
+        }).catch(() => {});
+      }, 800);
+    }
   }
-  let h=`<div class="group-row hdr">
-    <div class="gr-rank">#</div>
-    <div class="gr-name hdr-txt">姓名／組別</div>
-    <div class="gr-actual hdr-txt">實際</div>
-    <div class="gr-rich hdr-txt">iRich</div>
-    <div class="gr-pct hdr-txt">占比</div>
-  </div>`;
-  data.forEach((p,i)=>{
-    const hit=p.pct>=TARGET;
-    const dc=p.dept===3?'var(--gold-light)':'#80C0FF';
-    h+=`<div class="group-row">
-      <div class="gr-rank" style="font-size:11px;color:var(--muted)">${i+1}</div>
-      <div class="gr-name">
-        <div style="font-size:12px;font-weight:600">${p.name}</div>
-        <div style="font-size:10px;color:${dc};margin-top:1px">${p.gname}</div>
-      </div>
-      <div class="gr-actual">${p.actual}</div>
-      <div class="gr-rich">${p.rich}</div>
-      <div class="gr-pct ${hit?'c-green':'c-red'}">${pct(p.pct)}</div>
-    </div>`;
-  });
-  document.getElementById('tbl-full').innerHTML=h;
+  const nextBtn = document.getElementById('q-next');
+  nextBtn.style.display = 'inline-block';
+  const isLast = qIdx + 1 >= ch.quiz.length;
+  nextBtn.textContent = isLast ? '查看結果 →' : '下一題 →';
+  nextBtn.onclick = () => {
+    if (isLast) {
+      state.mode = 'result';
+      saveState();
+      showChapter(chIdx, 'result');
+    } else {
+      state.quizIndex = qIdx + 1;
+      saveState();
+      renderQuiz(chIdx, qIdx + 1);
+    }
+  };
 }
 
-function filterFull(q){
-  const kw=q.trim().toLowerCase();
-  const filtered=kw?fullIndividuals.filter(p=>p.name.includes(kw)||p.gname.toLowerCase().includes(kw)):fullIndividuals;
-  renderFullTable(filtered);
+// ═══════════════════════════════════════
+// RESULT
+// ═══════════════════════════════════════
+function renderResult(chIdx) {
+  const ch = CHAPTERS[chIdx];
+  const sc = state.scores[chIdx] || { correct:0, total: ch.quiz.length };
+  const pct = Math.round(sc.correct / sc.total * 100);
+  const area = document.getElementById('result-area');
+  area.style.display = 'block';
+  let icon, title, sub;
+  if (pct >= 75) { icon='🎉'; title='太棒了！'; sub='您已充分掌握本章節知識。'; }
+  else if (pct >= 50) { icon='💪'; title='不錯！繼續加油'; sub='建議回顧本章節重點，再次強化記憶。'; }
+  else { icon='📖'; title='需要再複習一下'; sub='請回到本章節重新閱讀，掌握核心知識後再次測驗。'; }
+  document.getElementById('r-icon').textContent = icon;
+  document.getElementById('r-title').textContent = title;
+  document.getElementById('r-sub').textContent = sub;
+  document.getElementById('r-score').innerHTML = `${sc.correct} / ${sc.total} <span style="font-size:1.2rem;color:var(--muted);">（${pct}%）</span>`;
+  const detail = document.getElementById('r-detail');
+  detail.innerHTML = `
+    <div class="row"><span>章節</span><span style="color:var(--gold)">${ch.title}</span></div>
+    <div class="row"><span>答對題數</span><span style="color:var(--green)">${sc.correct} 題</span></div>
+    <div class="row"><span>答錯題數</span><span style="color:var(--red)">${sc.total - sc.correct} 題</span></div>
+    <div class="row"><span>正確率</span><span style="color:${pct>=75?'var(--green)':pct>=50?'var(--gold)':'var(--red)'}">${pct}%</span></div>
+  `;
+  updateScoreRing();
+  const actions = document.getElementById('r-actions');
+  const isLast = chIdx >= CHAPTERS.length - 1;
+  const allDone = Object.keys(state.scores).length >= CHAPTERS.length;
+  actions.innerHTML = '';
+  // retry
+  const retryBtn = document.createElement('button');
+  retryBtn.className = 'btn-secondary';
+  retryBtn.textContent = '🔄 重新測驗';
+  retryBtn.onclick = () => startQuiz(chIdx);
+  actions.appendChild(retryBtn);
+  // review
+  const reviewBtn = document.createElement('button');
+  reviewBtn.className = 'btn-secondary';
+  reviewBtn.textContent = '📖 回顧章節';
+  reviewBtn.onclick = () => goToChapter(chIdx);
+  actions.appendChild(reviewBtn);
+  // next or finish
+  if (!isLast) {
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-primary';
+    nextBtn.textContent = `下一章：${CHAPTERS[chIdx+1].title} →`;
+    nextBtn.onclick = () => goToChapter(chIdx + 1);
+    actions.appendChild(nextBtn);
+  } else if (allDone) {
+    const finBtn = document.createElement('button');
+    finBtn.className = 'btn-primary';
+    finBtn.textContent = '🏅 查看培訓完成證書';
+    finBtn.onclick = showFinal;
+    actions.appendChild(finBtn);
+  }
 }
 
-function switchTab(btn,targetId){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(targetId).classList.add('active');
+// ═══════════════════════════════════════
+// FINAL
+// ═══════════════════════════════════════
+function showFinal() {
+  document.getElementById('content-area').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'none';
+  document.getElementById('result-area').style.display = 'none';
+  const final = document.getElementById('final-screen');
+  final.style.display = 'flex';
+  // calc badges
+  const scores = Object.entries(state.scores);
+  const avgPct = scores.length ? Math.round(scores.reduce((a,[,v]) => a + v.correct/v.total, 0) / scores.length * 100) : 0;
+  const perfect = scores.filter(([,v]) => v.correct === v.total).length;
+  const badges = document.getElementById('final-badges');
+  badges.innerHTML = `
+    <div class="badge"><div class="b-icon">📚</div>完成全部<br>${CHAPTERS.length} 章節</div>
+    <div class="badge"><div class="b-icon">🎯</div>平均正確率<br>${avgPct}%</div>
+    <div class="badge"><div class="b-icon">🏆</div>滿分章節<br>${perfect} 個</div>
+    <div class="badge"><div class="b-icon">🐟</div>烏金品鑑師<br>認證</div>
+  `;
+  // ── 送出最終完成紀錄到 Google Sheets ──
+  if (state.gasUrl && scores.length >= CHAPTERS.length && !state.finalSent) {
+    state.finalSent = true;
+    saveState();
+    const chapterSummary = CHAPTERS.map((c, i) => {
+      const s = state.scores[i];
+      return s ? `${c.title}:${Math.round(s.correct/s.total*100)}%` : `${c.title}:未完成`;
+    }).join(' | ');
+    fetch(state.gasUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'final',
+        name: state.userName || '匿名',
+        avgPct,
+        perfect,
+        totalChapters: CHAPTERS.length,
+        chapterSummary,
+        timestamp: new Date().toISOString()
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    }).catch(() => {});
+  }
+}
+
+// ═══════════════════════════════════════
+// SIDEBAR MOBILE
+// ═══════════════════════════════════════
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+// ═══════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════
+function resetAll() {
+  if (!confirm('確定要重置所有進度嗎？')) return;
+  localStorage.removeItem('haiwu_state');
+  state = { started:false, currentChapter:0, mode:'content', quizIndex:0, quizAnswered:false, scores:{} };
+  document.getElementById('content-area').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'none';
+  document.getElementById('result-area').style.display = 'none';
+  document.getElementById('final-screen').style.display = 'none';
+  document.getElementById('welcome-screen').style.display = 'flex';
+  document.getElementById('top-bar-fill').style.width = '0%';
+  buildNav();
+  updateScoreRing();
 }
 </script>
 </body>
