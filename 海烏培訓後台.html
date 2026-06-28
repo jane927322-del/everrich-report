@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海烏培訓後台管理</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+:root {
+  --navy:#0D1B2E; --navy2:#142336; --card:#1A2D44; --border:#243C58;
+  --gold:#C9973A; --gold-light:#E8C06A;
+  --white:#F0EDE6; --muted:#8AACCA;
+  --green:#3DC98A; --green-bg:rgba(61,201,138,.12);
+  --red:#E05A5A; --yellow:#F5C842;
+  --shadow:0 4px 20px rgba(0,0,0,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;}
+
+header{
+  background:linear-gradient(135deg,#0A1220,#162032);
+  border-bottom:1px solid var(--border);
+  padding:16px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--navy);}
+.brand-title{font-size:15px;font-weight:800;}
+.brand-sub{font-size:11px;color:var(--muted);}
+.refresh-btn{background:var(--border);border:none;color:var(--white);padding:7px 14px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:5px;}
+.refresh-btn:hover{background:#2E4D6A;}
+.last-updated{font-size:10px;color:var(--muted);margin-top:2px;text-align:right;}
+
+/* GAS URL input */
+.gas-setup{max-width:900px;margin:20px auto;padding:0 16px;}
+.gas-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;}
+.gas-label{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.5px;margin-bottom:8px;}
+.gas-row{display:flex;gap:8px;}
+.gas-input{flex:1;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--white);font-family:inherit;font-size:12px;outline:none;transition:border-color .2s;}
+.gas-input:focus{border-color:var(--gold);}
+.gas-btn{background:var(--gold);color:var(--navy);border:none;border-radius:8px;padding:9px 16px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.gas-hint{font-size:10px;color:var(--muted);margin-top:6px;}
+
+/* TABS */
+.content{max-width:900px;margin:0 auto;padding:0 16px 32px;}
+.tabs{display:flex;gap:4px;background:var(--card);border-radius:12px;padding:4px;margin-bottom:16px;border:1px solid var(--border);}
+.tab{flex:1;padding:9px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
+.tab.active{background:var(--border);color:var(--white);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.stat-num{font-size:28px;font-weight:900;color:var(--gold-light);}
+.stat-label{font-size:10px;color:var(--muted);margin-top:4px;}
+
+/* TABLE */
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.trow{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.04);gap:12px;transition:background .15s;}
+.trow:last-child{border-bottom:none;}
+.trow:hover{background:rgba(255,255,255,.03);}
+.trow.hdr{background:rgba(255,255,255,.05);padding:8px 16px;}
+.tc-rank{width:28px;flex-shrink:0;text-align:center;font-size:12px;color:var(--muted);}
+.tc-name{width:90px;flex-shrink:0;font-size:13px;font-weight:700;}
+.tc-pct{width:60px;flex-shrink:0;text-align:right;font-size:13px;font-weight:800;}
+.tc-bar{flex:1;min-width:80px;}
+.tc-perfect{width:52px;flex-shrink:0;text-align:center;font-size:12px;}
+.tc-done{width:52px;flex-shrink:0;text-align:center;font-size:12px;}
+.tc-time{width:100px;flex-shrink:0;text-align:right;font-size:10px;color:var(--muted);}
+.hdr-txt{font-size:10px;color:var(--muted);font-weight:600;}
+.bar-bg{background:rgba(255,255,255,.08);border-radius:3px;height:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;background:var(--green);transition:width .8s cubic-bezier(.4,0,.2,1);}
+.c-green{color:var(--green);}
+.c-yellow{color:var(--yellow);}
+.c-red{color:var(--red);}
+.c-gold{color:var(--gold-light);}
+.medal{font-size:15px;}
+
+/* CHAPTER TABLE */
+.ch-name-col{flex:1;font-size:12px;color:var(--white);}
+.ch-sub{font-size:10px;color:var(--muted);}
+.ch-pct-col{width:60px;text-align:right;font-size:13px;font-weight:800;flex-shrink:0;}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:12px;}
+.search-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 14px 9px 36px;color:var(--white);font-family:inherit;font-size:13px;outline:none;transition:border-color .2s;}
+.search-input::placeholder{color:var(--muted);}
+.search-input:focus{border-color:var(--gold);}
+.s-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);}
+
+/* LOADING / EMPTY */
+.loading{text-align:center;padding:40px;color:var(--muted);}
+.spin{display:inline-block;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+
+/* BADGE */
+.badge-done{background:var(--green-bg);color:var(--green);border:1px solid rgba(61,201,138,.3);border-radius:4px;font-size:9px;font-weight:700;padding:1px 6px;}
+.badge-prog{background:rgba(245,200,66,.1);color:var(--yellow);border:1px solid rgba(245,200,66,.25);border-radius:4px;font-size:9px;font-weight:700;padding:1px 6px;}
+
+@media(max-width:600px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .tc-time,.tc-perfect{display:none;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">🐟</div>
+    <div>
+      <div class="brand-title">海烏培訓後台</div>
+      <div class="brand-sub">最後更新：<span id="last-update">—</span></div>
+    </div>
+  </div>
+  <div style="text-align:right;">
+    <button class="refresh-btn" onclick="loadData()">🔄 重新整理</button>
+  </div>
+</header>
+
+<!-- GAS URL 設定 -->
+<div class="gas-setup">
+  <div class="gas-box">
+    <div class="gas-label">⚙️ GAS 網址設定（貼上你的 Google Apps Script 部署網址）</div>
+    <div class="gas-row">
+      <input class="gas-input" type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/…/exec">
+      <button class="gas-btn" onclick="saveGasUrl()">儲存並載入</button>
+    </div>
+    <div class="gas-hint">設定一次即可，下次開啟會自動記住。請參考附件「GAS設定步驟.txt」完成部署。</div>
+  </div>
+</div>
+
+<div class="content">
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-label">總參與人數</div></div>
+    <div class="stat-card"><div class="stat-num c-green" id="s-done">—</div><div class="stat-label">已完成培訓</div></div>
+    <div class="stat-card"><div class="stat-num c-gold" id="s-avg">—</div><div class="stat-label">平均正確率</div></div>
+    <div class="stat-card"><div class="stat-num c-yellow" id="s-perfect">—</div><div class="stat-label">全滿分人數</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this,'tab-rank')">🏆 人員排行</button>
+    <button class="tab" onclick="switchTab(this,'tab-chapter')">📚 章節分析</button>
+  </div>
+
+  <!-- RANKING TAB -->
+  <div class="tab-content active" id="tab-rank">
+    <div class="search-wrap">
+      <span class="s-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="搜尋姓名…" oninput="filterRank(this.value)" id="rank-search">
+    </div>
+    <div class="tbl-wrap" id="rank-table">
+      <div class="loading"><div class="spin"></div><br>等待載入資料…</div>
+    </div>
+  </div>
+
+  <!-- CHAPTER TAB -->
+  <div class="tab-content" id="tab-chapter">
+    <div class="tbl-wrap" id="chapter-table">
+      <div class="loading"><div class="spin"></div><br>等待載入資料…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'haiwu_admin_gas_url';
+let allFinalRows = [];
+let allChapterRows = [];
+
+// ── GAS URL ──
+function saveGasUrl() {
+  const url = document.getElementById('gas-url-input').value.trim();
+  if (!url.startsWith('https://')) { alert('請輸入正確的 GAS 網址'); return; }
+  localStorage.setItem(STORAGE_KEY, url);
+  loadData();
+}
+function getGasUrl() {
+  return localStorage.getItem(STORAGE_KEY) || '';
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = getGasUrl();
+  if (saved) {
+    document.getElementById('gas-url-input').value = saved;
+    loadData();
+  }
+});
+
+// ── LOAD ──
+// ── 用 JSONP 方式呼叫 GAS，避免 CORS 問題 ──
+function jsonpFetch(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('請求逾時，請確認 GAS 網址正確且已部署為「所有人可存取」'));
+    }, 12000);
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    script.src = url + '&callback=' + cbName;
+    script.onerror = () => { cleanup(); reject(new Error('GAS 網址無法存取，請重新部署並確認存取權為「所有人」')); };
+    document.head.appendChild(script);
+  });
+}
+
+async function loadData() {
+  const url = getGasUrl();
+  if (!url) { alert('請先設定 GAS 網址'); return; }
+
+  document.getElementById('rank-table').innerHTML = '<div class="loading"><div class="spin"></div><br>載入中…</div>';
+  document.getElementById('chapter-table').innerHTML = '<div class="loading"><div class="spin"></div><br>載入中…</div>';
+
+  try {
+    const [finalRes, chRes] = await Promise.all([
+      jsonpFetch(url + '?action=getFinal'),
+      jsonpFetch(url + '?action=getChapters')
+    ]);
+    allFinalRows = finalRes.rows || [];
+    allChapterRows = chRes.rows || [];
+    renderStats();
+    renderRankTable(allFinalRows);
+    renderChapterTable(allChapterRows);
+    document.getElementById('last-update').textContent = new Date().toLocaleTimeString('zh-TW');
+  } catch(e) {
+    document.getElementById('rank-table').innerHTML = '<div class="empty">❌ ' + e.message + '</div>';
+    document.getElementById('chapter-table').innerHTML = '<div class="empty">❌ 載入失敗</div>';
+  }
+}
+
+function setLoading(v) {
+  // handled per-table
+}
+
+// ── STATS ──
+function renderStats() {
+  const total = allFinalRows.length;
+  const done = allFinalRows.filter(r => r.total >= 8).length;
+  const avg = total ? Math.round(allFinalRows.reduce((a,r) => a + Number(r.avgPct), 0) / total) : 0;
+  const perfect = allFinalRows.filter(r => Number(r.perfect) >= 8).length;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-avg').textContent = avg ? avg + '%' : '—';
+  document.getElementById('s-perfect').textContent = perfect;
+}
+
+// ── RANK TABLE ──
+function renderRankTable(data) {
+  const el = document.getElementById('rank-table');
+  if (!data.length) { el.innerHTML='<div class="empty">尚無資料<br><small>等員工完成培訓後會自動出現</small></div>'; return; }
+  let h = `<div class="trow hdr">
+    <div class="tc-rank">#</div>
+    <div class="tc-name hdr-txt">姓名</div>
+    <div class="tc-bar hdr-txt">進度</div>
+    <div class="tc-pct hdr-txt">正確率</div>
+    <div class="tc-perfect hdr-txt">滿分章</div>
+    <div class="tc-done hdr-txt">狀態</div>
+    <div class="tc-time hdr-txt">最後測驗</div>
+  </div>`;
+  data.forEach((r, i) => {
+    const rank = i + 1;
+    const pct = Number(r.avgPct) || 0;
+    const done = Number(r.total) || 0;
+    const perfect = Number(r.perfect) || 0;
+    const icon = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+    const pctCls = pct>=85?'c-green':pct>=70?'c-gold':'c-red';
+    const isDone = done >= 8;
+    const badge = isDone
+      ? '<span class="badge-done">✓ 已完成</span>'
+      : `<span class="badge-prog">進行中 (${done}/8)</span>`;
+    const barW = Math.round(pct);
+    const barColor = pct>=85?'var(--green)':pct>=70?'var(--gold-light)':'var(--red)';
+    const timeStr = r.time ? String(r.time).slice(5,16) : '—';
+    h += `<div class="trow">
+      <div class="tc-rank">${icon||rank}</div>
+      <div class="tc-name">${r.name}</div>
+      <div class="tc-bar"><div class="bar-bg"><div class="bar-fill" style="width:${barW}%;background:${barColor}"></div></div></div>
+      <div class="tc-pct ${pctCls}">${pct}%</div>
+      <div class="tc-perfect" style="color:var(--yellow)">${perfect} / 8</div>
+      <div class="tc-done">${badge}</div>
+      <div class="tc-time">${timeStr}</div>
+    </div>`;
+  });
+  el.innerHTML = h;
+}
+
+function filterRank(q) {
+  const kw = q.trim();
+  const filtered = kw ? allFinalRows.filter(r => r.name.includes(kw)) : allFinalRows;
+  renderRankTable(filtered);
+}
+
+// ── CHAPTER TABLE ──
+function renderChapterTable(rows) {
+  const el = document.getElementById('chapter-table');
+  if (!rows.length) { el.innerHTML='<div class="empty">尚無章節資料</div>'; return; }
+
+  // group by chapter
+  const byChapter = {};
+  rows.forEach(r => {
+    const id = r.chId;
+    if (!byChapter[id]) byChapter[id] = { title: r.chTitle, scores: [] };
+    byChapter[id].scores.push(Number(r.pct) || 0);
+  });
+
+  let h = `<div class="trow hdr">
+    <div class="tc-rank hdr-txt">#</div>
+    <div class="ch-name-col hdr-txt">章節</div>
+    <div class="tc-done hdr-txt">作答人數</div>
+    <div class="ch-pct-col hdr-txt">平均正確率</div>
+  </div>`;
+
+  Object.entries(byChapter).sort((a,b)=>Number(a[0])-Number(b[0])).forEach(([id, ch]) => {
+    const count = ch.scores.length;
+    const avg = Math.round(ch.scores.reduce((a,v)=>a+v,0)/count);
+    const pctCls = avg>=85?'c-green':avg>=70?'c-gold':'c-red';
+    h += `<div class="trow">
+      <div class="tc-rank" style="font-size:11px;color:var(--muted)">${id}</div>
+      <div class="ch-name-col">
+        <div style="font-size:12px;font-weight:600">${ch.title}</div>
+        <div class="bar-bg" style="margin-top:5px"><div class="bar-fill" style="width:${avg}%"></div></div>
+      </div>
+      <div class="tc-done" style="font-size:12px;color:var(--muted)">${count} 人</div>
+      <div class="ch-pct-col ${pctCls}">${avg}%</div>
+    </div>`;
+  });
+  el.innerHTML = h;
+}
+
+// ── TABS ──
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
